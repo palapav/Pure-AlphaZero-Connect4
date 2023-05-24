@@ -26,9 +26,9 @@ class AlphaZeroNet(nn.Module):
         # last 8th class -> value estimate
 
         prob_vector = self.softmax(out[0:7])
-        value=out[7]
+        value_est=out[7]
 
-        return (prob_vector.detach().numpy(), value.item())
+        return (prob_vector, value_est)
 
 # ----- sanity check unit test -----
 def main():
@@ -44,8 +44,9 @@ def main():
     tensor_board = torch.FloatTensor(board)
     prob_vector, value = alpha_zero.forward(tensor_board)
 
-    print(f"prob vector: {prob_vector}")
-    print(f"value estimate: {value}")
+    # do the detach/numpy and item separately
+    print(f"prob vector: {prob_vector.detach().numpy()}")
+    print(f"value estimate: {value.item()}")
 
 if __name__ == "__main__":
     main()
