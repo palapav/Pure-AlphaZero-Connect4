@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import copy
 # MCTS class will call implicit, default constructor that
 # resets search tree per game
@@ -26,12 +27,13 @@ class MCTS():
             self.parent_node = parent
             self.is_terminal = is_terminal
             self.terminal_score = terminal_score
+            # represents action already processed to get to current state
             self.action_taken = action_taken
             self.children = []
 
             # vector of possible actions probability to take from current network
             # curr node pi policy
-            self.child_priors = network_prob
+            self.child_priors = network_prob # p vector
             self.z_value = value_est
 
             self.curr_node_wins = 0
@@ -39,15 +41,29 @@ class MCTS():
             self.parent_node_visits = 0
 
     @staticmethod
-    def get_highest_visits(root_children_nodes):
-        # don't need a list -> can save on the memory
-        children_visits = [child_node.total_visits for child_node in root_children_nodes]
-        best_visits_index = children_visits.index(max(children_visits))
-        return root_children_nodes[best_visits_index] 
+    # stochastic pi policy -> refined from initial estimate via MCTS
+    def create_pi_policy(root_children_nodes):
+        # our children nodes need to be ordered via the possible action
+        # test here -> see if child_node action takens are in order
+        if len(root_children_nodes) != 7:
+            raise ValueError("Every node must have 7 children probability")
+        # returns pi policy vector (needs to be of length 7 always -> 0s for illegal)
+        children_visits = np.array([child_node.curr_node_visits for child_node in root_children_nodes])
+        total_children_visits = np.sum(children_visits)
+        root_pi_policy = children_visits / total_children_visits
+        return root_pi_policy
 
     @staticmethod
     def calculate_ucb_score(curr_node_wins, curr_node_visits, curr_node_prob, parent_node_visits):
-        pass
+                # ucb score is never stored
+        if curr_node_visits == 0: return float('+inf')
+        # exploration parameter
+        C = math.sqrt(2)
+
+        exploitation_term = curr_node_wins / curr_node_visits
+        # now accounting for prior (Bayes rule)
+        exploration_term = C * curr_node_prob * math.sqrt(math.log(parent_node_visits) / curr_node_visits)
+        return exploitation_term + exploration_term
     
     # doesn't need to be instance method
     # is it better to store children UCB scores in every node 
@@ -75,7 +91,7 @@ class MCTS():
             # need to use parents? -> don't think so
             # initial estimate of taking an action from state s (child node)
             # according to nn policy
-            child_move_prob = child_node.child_priors[played_move]
+            child_move_prob = parent_node.child_priors[played_move]
 
 
             child_ucb_score = MCTS.calculate_ucb_score(
@@ -91,10 +107,6 @@ class MCTS():
             return children_nodes[best_child_index]
 
 
-
-
-
-
     def select(self, root_node):
         curr_node = root_node
 
@@ -103,18 +115,30 @@ class MCTS():
         else:
             children_nodes = curr_node.children
             # recurses down branch of best_child_node (highest UCB score)
-            best_child_node = 
-
-        pass
+            best_child_node = MCTS.select_highest_UCB(children_nodes)
+            return self.select(best_child_node)
 
     def expand(self, leaf_node, alphazero_net):
+        """did not add dirichlet noise to root node yet"""
         pass
 
     # no more simulations/rollout and backpropagate result of that
     # we now backpropagate value_est from NN or z_score in search tree
     
-    def backpropagate(self, leaf_node, alphazero_net):
-        pass
+    def backpropagate(self, leaf_node):
+        """z value can represent value_est or terminal_score """
+        """current backprop is very bad"""
+        curr_node = leaf_node
+        
+        while curr_node != None:
+            curr_node.total_visits = curr_node.total_visits + 1
+
+            if curr_node.player_mark == 1: curr_node.curr_node_wins += leaf_node.z_value
+            elif curr_node.player_mark == 2: curr_node.curr_node_wins += (-1 * leaf_node.z_value)
+
+            curr_node = curr_node.parent
+            
+
 
     # performs set MCTS simulations
     # we backpropagate 
@@ -144,13 +168,14 @@ class MCTS():
             if leaf_node.is_terminal:
                 # this simulated game in MCTS tree has ended -> backprop true score for more
                 # accurate results
-                self.backpropagate(leaf_node.terminal_score)
+                leaf_node.z_value = leaf_node.terminal_score
+                self.backpropagate(leaf_node)
                 continue
 
             # expansion -> create new nodes
-            self.expand(leaf_node, alphazero_net)
+            self.expand(leaf_node)
             # backprop -> value estimate
-            self.backpropagate(leaf_node, alphazero_net)
+            self.backpropagate(leaf_node)
 
         # need to make these functions -> avoid accessing variables?
         # are we returning from pi_policy or from ucb_scores
@@ -158,7 +183,7 @@ class MCTS():
         # this is the stochastic pi policy fed by MCTS refined from initial estimate
         # but initial estimate value itself doesn't improve
         root_node_children = root_node
-        best_move = MCTS.get_highest_visits(root_node_children)
-        return best_move
+        pi_policy_vector = MCTS.create_pi_policy(root_node_children)
+        return np.argmax(pi_policy_vector)
         # selected move -> highest action from pi_vector
         # out here we return the selected move & append to our dataset -> done from run_alphazero
