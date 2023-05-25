@@ -12,4 +12,5 @@
     # at end of epoch -> we train NN model -> return a new NN model with better set of weights
     # we pit the old and current model -> set best model as previous
 def run():
+    # at end of run -> fully trained NN model -> can be tested on with Kaggle Environment AI agents
     pass
