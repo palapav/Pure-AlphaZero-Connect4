@@ -126,7 +126,7 @@ class MCTS():
 
     def expand(self, leaf_node, alphazero_net):
         """did not add dirichlet noise to root node yet
-        need to refactor """
+        need to refactor to avoid for loops/maximize numpy"""
 
         # 42 cell numpy array
         leaf_node_board = leaf_node.board
@@ -134,43 +134,52 @@ class MCTS():
         num_child_outcomes = len(available_moves)
         if num_child_outcomes == 0:
             raise ValueError("leaf node is full -> should not be here in expansion state")
-        unavailable_moves = Game.get_illegal_moves(leaf_node_board)
+        
+        # unavailable_moves = Game.get_illegal_moves(leaf_node_board)
+        # for i in range(len(unavailable_moves)):
+        #     leaf_node.child_priors[unavailable_moves[i]] = 0.00000000
 
-        for i in range(len(unavailable_moves)):
-            leaf_node.child_priors[unavailable_moves[i]] = 0.00000000
-
-            # adding the dirichlet noise
-            # if true -> root node
-            # if leaf_node.parent is None:
-            #     Node.add_dirichlet_noise(leaf_node)
+        # adding the dirichlet noise
+        # if true -> root node
+        # if leaf_node.parent is None:
+        #     Node.add_dirichlet_noise(leaf_node)
             
-            # creating new child nodes based on all available actions
+        # creating new child nodes based on all available actions
+        new_child_mark = Game.opponent_player_mark(leaf_node.player_mark)
         for i in range(num_child_outcomes):
-                new_child_board = leaf_node_board.copy()
-                # inserting opponent's mark onto new child board
-                # as new nodes own the next board positioning
-                play(new_child_board, available_moves[i], opp_mark)
-                # new_child_board[available_moves[i]] = opp_mark
-                
+            new_child_board = copy.deepcopy(leaf_node_board)
+            # inserting opponent's mark onto new child board
+            # as new nodes own the next board positioning
+            Game.play_move(new_child_board, available_moves[i], new_child_mark)
+            # new_child_board[available_moves[i]] = opp_mark
 
-                # determines is_terminal attribute and terminal_score (reward)
-                # before finally creating new children nodes
-                is_finished, reward = score_game(new_child_board, available_moves[i], opp_mark)
-                is_terminal = False
-                if is_finished: is_terminal = True
-                new_child_node = Node(new_child_board, opp_mark,
-                                      reward, leaf_node, is_terminal, 
-                                      available_moves[i])
-                
-                # appending all possible children outcomes to the best leaf node
-                leaf_node.children.append(new_child_node)
+            """insert p vector and value estimate for new child board (with child player move played) """
+            child_priors, value_est = alphazero_net.forward(new_child_board)
+            child_priors = child_priors.detach().numpy()
+            unavailable_moves = Game.get_illegal_moves(new_child_board)
+            for i in range(len(unavailable_moves)):
+                child_priors[unavailable_moves[i]] = 0.00000000
+            value_est = value_est.item()
+
+            # determines is_terminal attribute and terminal_score (reward)
+            # before finally creating new children nodes
+            is_finished, reward = Game.score_game(new_child_board, available_moves[i], new_child_mark)
+            # creates new child node in MCTS tree for this turn
+            new_child_node = Node(
+                                new_child_board, new_child_mark, leaf_node,
+                                child_priors, value_est, is_finished, reward, 
+                                available_moves[i]
+                                )
+            
+            # appending all possible children outcomes to the best leaf node
+            leaf_node.children.append(new_child_node)
 
     # no more simulations/rollout and backpropagate result of that
     # we now backpropagate value_est from NN or z_score in search tree
     
     def backpropagate(self, leaf_node):
         """z value can represent value_est or terminal_score """
-        """current backprop is very bad"""
+        """refactor code for variables to better represent terminal z vs network value_est"""
         """terminal leaf node -> one more move left """
         curr_node = leaf_node
         

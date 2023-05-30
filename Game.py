@@ -111,13 +111,15 @@ class Game():
     # terrible software design right now -> need to refactor tomorrow
     # playing the selected move on the game board for an episode per epoch
     # we train the network after each epoch
-    def play_move(self, column, player_mark):
-        row = max([r for r in range(ROWS) if self.board[column + (r * COLUMNS)] == EMPTY])
-        self.board[column + (row * COLUMNS)] = player_mark
+    @staticmethod
+    def play_move(board, column, player_mark):
+        row = max([r for r in range(ROWS) if board[column + (r * COLUMNS)] == EMPTY])
+        board[column + (row * COLUMNS)] = player_mark
 
-    def is_win(self, column, player_mark):
+    @staticmethod
+    def is_win(board, column, player_mark):
         inarow = 3
-        row =  min([r for r in range(ROWS) if self.board[column + (r * COLUMNS)] == player_mark])
+        row =  min([r for r in range(ROWS) if board[column + (r * COLUMNS)] == player_mark])
         
         def count(offset_row, offset_column):
             for i in range(1, inarow + 1):
@@ -128,7 +130,7 @@ class Game():
                     or r >= ROWS
                     or c < 0
                     or c >= COLUMNS
-                    or self.board[c + (r * COLUMNS)] != player_mark
+                    or board[c + (r * COLUMNS)] != player_mark
                 ):
                     return i - 1
             return inarow
@@ -140,14 +142,16 @@ class Game():
             or (count(-1, 1) + count(1, -1)) >= inarow  # top right diagonal.
         )
 
-    def is_tie(self):
-        return not(any(mark == EMPTY for mark in self.board[0: COLUMNS + 1]))
+    @staticmethod
+    def is_tie(board):
+        return not(any(mark == EMPTY for mark in board[0: COLUMNS + 1]))
     
     # we score the game prior to player_mark placing mark on board
-    def score_game(self, column, player_mark):
-        if self.is_win(column, player_mark):
+    @staticmethod
+    def score_game(board, column, player_mark):
+        if Game.is_win(board, column, player_mark):
             return (True, 1)
-        if self.is_tie():
+        if Game.is_tie(board):
             return (True, 0)
         else:
             # opponent won -> current player -> -1 score in backprop
