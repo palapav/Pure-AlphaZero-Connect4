@@ -1,6 +1,8 @@
 import numpy as np
+# in built -> math module
 import math
 import copy
+import Game
 # MCTS class will call implicit, default constructor that
 # resets search tree per game
 
@@ -20,20 +22,23 @@ class MCTS():
         pi_policy -> probability over potential child actions
         current node can take -> refined with MCTS (initally)
         """
-        def __init__(self, board, player_turn, parent, is_terminal,
-                     terminal_score, network_prob, value_est, action_taken=None):
+        def __init__(self, board, player_turn, parent, network_prob, value_est,
+                     is_terminal=False, terminal_score = None, action_taken=None):
             self.board = copy.deepcopy(board)
             self.player_mark = player_turn
             self.parent_node = parent
             self.is_terminal = is_terminal
             self.terminal_score = terminal_score
-            # represents action already processed to get to current state
+            # represents action taken by current player on current board/node
+            # action is processed once mark of current player is placed on board
             self.action_taken = action_taken
             self.children = []
 
             # vector of possible actions probability to take from current network
             # curr node pi policy
+            # all zero child priors for terminal leaf nodes
             self.child_priors = network_prob # p vector
+            # updated to terminal score for terminal nodes
             self.z_value = value_est
 
             self.curr_node_wins = 0
@@ -91,6 +96,7 @@ class MCTS():
             # need to use parents? -> don't think so
             # initial estimate of taking an action from state s (child node)
             # according to nn policy
+            """look back at this again -> parent node """
             child_move_prob = parent_node.child_priors[played_move]
 
 
@@ -119,8 +125,45 @@ class MCTS():
             return self.select(best_child_node)
 
     def expand(self, leaf_node, alphazero_net):
-        """did not add dirichlet noise to root node yet"""
-        pass
+        """did not add dirichlet noise to root node yet
+        need to refactor """
+
+        # 42 cell numpy array
+        leaf_node_board = leaf_node.board
+        available_moves = Game.get_avail_moves(leaf_node_board)
+        num_child_outcomes = len(available_moves)
+        if num_child_outcomes == 0:
+            raise ValueError("leaf node is full -> should not be here in expansion state")
+        unavailable_moves = Game.get_illegal_moves(leaf_node_board)
+
+        for i in range(len(unavailable_moves)):
+            leaf_node.child_priors[unavailable_moves[i]] = 0.00000000
+
+            # adding the dirichlet noise
+            # if true -> root node
+            # if leaf_node.parent is None:
+            #     Node.add_dirichlet_noise(leaf_node)
+            
+            # creating new child nodes based on all available actions
+        for i in range(num_child_outcomes):
+                new_child_board = leaf_node_board.copy()
+                # inserting opponent's mark onto new child board
+                # as new nodes own the next board positioning
+                play(new_child_board, available_moves[i], opp_mark)
+                # new_child_board[available_moves[i]] = opp_mark
+                
+
+                # determines is_terminal attribute and terminal_score (reward)
+                # before finally creating new children nodes
+                is_finished, reward = score_game(new_child_board, available_moves[i], opp_mark)
+                is_terminal = False
+                if is_finished: is_terminal = True
+                new_child_node = Node(new_child_board, opp_mark,
+                                      reward, leaf_node, is_terminal, 
+                                      available_moves[i])
+                
+                # appending all possible children outcomes to the best leaf node
+                leaf_node.children.append(new_child_node)
 
     # no more simulations/rollout and backpropagate result of that
     # we now backpropagate value_est from NN or z_score in search tree
@@ -128,16 +171,21 @@ class MCTS():
     def backpropagate(self, leaf_node):
         """z value can represent value_est or terminal_score """
         """current backprop is very bad"""
+        """terminal leaf node -> one more move left """
         curr_node = leaf_node
         
         while curr_node != None:
             curr_node.total_visits = curr_node.total_visits + 1
 
-            if curr_node.player_mark == 1: curr_node.curr_node_wins += leaf_node.z_value
-            elif curr_node.player_mark == 2: curr_node.curr_node_wins += (-1 * leaf_node.z_value)
+            if curr_node.player_mark == 1:
+                if leaf_node.player_mark == 1: curr_node.curr_node_wins += leaf_node.z_value
+                else: curr_node.curr_node_wins += (-1 * leaf_node.z_value)
+            elif curr_node.player_mark == 2:
+                if leaf_node.player_mark == 1: curr_node.curr_node_wins += (-1 * leaf_node.z_value)
+                else: curr_node.curr_node_wins += leaf_node.z_value
 
             curr_node = curr_node.parent
-            
+
 
 
     # performs set MCTS simulations
@@ -149,6 +197,7 @@ class MCTS():
 
     # returns a move + stores a tuple in training dataset
     # for one person's turn
+    # player mark -> previously player who played move on root game board
     def search(self, alphazero_net, num_simulations, player_mark,
                root_game_board, training_dataset):
         # create the root node here (current state of the board)
@@ -157,7 +206,7 @@ class MCTS():
         child_priors, value_est = alphazero_net.forward(root_game_board)
         child_priors = child_priors.detach().numpy()
         value_est = value_est.item()
-        # can be previous player's action taken -> or only current player?
+        # player_mark from previous MCTS search call
         root_node = self.Node(root_game_board, player_mark, None, child_priors, value_est)
         for i in range(num_simulations):
             # selection
@@ -168,7 +217,6 @@ class MCTS():
             if leaf_node.is_terminal:
                 # this simulated game in MCTS tree has ended -> backprop true score for more
                 # accurate results
-                leaf_node.z_value = leaf_node.terminal_score
                 self.backpropagate(leaf_node)
                 continue
 
