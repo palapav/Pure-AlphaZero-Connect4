@@ -2,7 +2,9 @@ import numpy as np
 # in built -> math module
 import math
 import copy
-import Game
+from game_utils import Game # module owns class
+import torch
+import NeuralNetwork
 # MCTS class will call implicit, default constructor that
 # resets search tree per game
 
@@ -25,8 +27,9 @@ class MCTS():
         def __init__(self, board, player_turn, parent, network_prob, value_est,
                      is_terminal=False, terminal_score = None, action_taken=None):
             self.board = copy.deepcopy(board)
+            # already played on the board by player
             self.player_mark = player_turn
-            self.parent_node = parent
+            self.parent = parent
             self.is_terminal = is_terminal
             self.terminal_score = terminal_score
             # represents action taken by current player on current board/node
@@ -41,8 +44,8 @@ class MCTS():
             # updated to terminal score for terminal nodes
             self.z_value = value_est
 
-            self.curr_node_wins = 0
-            self.curr_node_visits = 0
+            self.wins = 0
+            self.visits = 0
             self.parent_node_visits = 0
 
     @staticmethod
@@ -85,9 +88,9 @@ class MCTS():
         for i in range(num_children):
             child_node = children_nodes[i]
             parent_node = child_node.parent
-            curr_node_wins = child_node.total_wins
-            curr_node_visits = child_node.total_visits
-            curr_node_parent_visits = parent_node.total_visits
+            curr_node_wins = child_node.wins
+            curr_node_visits = child_node.visits
+            curr_node_parent_visits = parent_node.visits
 
             # columns 1 through 7 in connect4 (0 indexed here)
             # played move -> to generate child board b/c root node has no action taken
@@ -131,6 +134,7 @@ class MCTS():
         # 42 cell numpy array
         leaf_node_board = leaf_node.board
         available_moves = Game.get_avail_moves(leaf_node_board)
+        print(f"available moves:\n{available_moves}")
         num_child_outcomes = len(available_moves)
         if num_child_outcomes == 0:
             raise ValueError("leaf node is full -> should not be here in expansion state")
@@ -146,15 +150,17 @@ class MCTS():
             
         # creating new child nodes based on all available actions
         new_child_mark = Game.opponent_player_mark(leaf_node.player_mark)
+        print(f"Number of child outcomes: {num_child_outcomes}")
         for i in range(num_child_outcomes):
             new_child_board = copy.deepcopy(leaf_node_board)
             # inserting opponent's mark onto new child board
             # as new nodes own the next board positioning
+            print(f"move to be placed: {available_moves[i]}")
             Game.play_move(new_child_board, available_moves[i], new_child_mark)
             # new_child_board[available_moves[i]] = opp_mark
 
             """insert p vector and value estimate for new child board (with child player move played) """
-            child_priors, value_est = alphazero_net.forward(new_child_board)
+            child_priors, value_est = alphazero_net.forward(torch.FloatTensor(new_child_board))
             child_priors = child_priors.detach().numpy()
             unavailable_moves = Game.get_illegal_moves(new_child_board)
             for i in range(len(unavailable_moves)):
@@ -163,9 +169,16 @@ class MCTS():
 
             # determines is_terminal attribute and terminal_score (reward)
             # before finally creating new children nodes
+            print(f"new child board:\n{np.reshape(new_child_board, (6,7))}")
+            print(f"action taken (already placed):\n{available_moves[i]}")
+            print(f"just placed player mark:\n{new_child_mark}")
+            print(f"move placed before scoring: {available_moves[i]}")
             is_finished, reward = Game.score_game(new_child_board, available_moves[i], new_child_mark)
             # creates new child node in MCTS tree for this turn
-            new_child_node = Node(
+            # may be too many parameters for one object -> refactor into smaller objects
+            # to build larger Node
+            # Node class owned by MCTS object 
+            new_child_node = self.Node(
                                 new_child_board, new_child_mark, leaf_node,
                                 child_priors, value_est, is_finished, reward, 
                                 available_moves[i]
@@ -174,9 +187,7 @@ class MCTS():
             # appending all possible children outcomes to the best leaf node
             leaf_node.children.append(new_child_node)
 
-    # no more simulations/rollout and backpropagate result of that
-    # we now backpropagate value_est from NN or z_score in search tree
-    
+
     def backpropagate(self, leaf_node):
         """z value can represent value_est or terminal_score """
         """refactor code for variables to better represent terminal z vs network value_est"""
@@ -184,40 +195,30 @@ class MCTS():
         curr_node = leaf_node
         
         while curr_node != None:
-            curr_node.total_visits = curr_node.total_visits + 1
+            curr_node.visits = curr_node.visits + 1
 
             if curr_node.player_mark == 1:
-                if leaf_node.player_mark == 1: curr_node.curr_node_wins += leaf_node.z_value
-                else: curr_node.curr_node_wins += (-1 * leaf_node.z_value)
+                if leaf_node.player_mark == 1: curr_node.wins += leaf_node.z_value
+                else: curr_node.wins += (-1 * leaf_node.z_value)
             elif curr_node.player_mark == 2:
-                if leaf_node.player_mark == 1: curr_node.curr_node_wins += (-1 * leaf_node.z_value)
-                else: curr_node.curr_node_wins += leaf_node.z_value
+                if leaf_node.player_mark == 1: curr_node.wins += (-1 * leaf_node.z_value)
+                else: curr_node.wins += leaf_node.z_value
 
             curr_node = curr_node.parent
 
 
-
-    # performs set MCTS simulations
-    # we backpropagate 
-    # after all set num simulations are done for move
-    # we then add (s, pi, maybe z) to data set
-    # once find z -> we add z for previous ones
-    # consider removing the root node when training?
-
-    # returns a move + stores a tuple in training dataset
-    # for one person's turn
-    # player mark -> previously player who played move on root game board
     def search(self, alphazero_net, num_simulations, player_mark,
-               root_game_board, training_dataset):
+               root_game_board, training_dataset=None):
         # create the root node here (current state of the board)
         # game board is 42 cell 1D numpy array -> passed from self-play
         # player_mark is the player whose about to place a mark on
-        child_priors, value_est = alphazero_net.forward(root_game_board)
+        child_priors, value_est = alphazero_net.forward(torch.FloatTensor(root_game_board))
         child_priors = child_priors.detach().numpy()
         value_est = value_est.item()
         # player_mark from previous MCTS search call
         root_node = self.Node(root_game_board, player_mark, None, child_priors, value_est)
         for i in range(num_simulations):
+            print(f"simulation: {i}")
             # selection
             leaf_node = self.select(root_node)
 
@@ -230,7 +231,7 @@ class MCTS():
                 continue
 
             # expansion -> create new nodes
-            self.expand(leaf_node)
+            self.expand(leaf_node, alphazero_net)
             # backprop -> value estimate
             self.backpropagate(leaf_node)
 
@@ -244,3 +245,25 @@ class MCTS():
         return np.argmax(pi_policy_vector)
         # selected move -> highest action from pi_vector
         # out here we return the selected move & append to our dataset -> done from run_alphazero
+    
+#--------- MCTS search sanity check --------------
+def main():
+    alphazero_nn = NeuralNetwork.AlphaZeroNet()
+    # player 2 owns this board (played last move at col 2)
+    # player 1 move is root node children
+    mcts_test_board = np.array([0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 2,
+                                1, 2, 1, 2, 1, 2, 1])
+    
+    # next player turn -> 1, so we pass in player 2
+    mcts = MCTS()
+    root_player_mark = 2
+    player_one_move = mcts.search(alphazero_nn, 10, root_player_mark, mcts_test_board)
+    # should be between columns 0 to 6
+    print(f"Player one next best move untrained: {player_one_move}")
+
+if __name__ == '__main__':
+    main()

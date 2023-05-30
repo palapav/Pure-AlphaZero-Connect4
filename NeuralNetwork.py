@@ -15,6 +15,7 @@ class AlphaZeroNet(nn.Module):
         self.softmax = nn.Softmax(dim=0)
     
     # x is the 42 input observation board
+    # may be bad practice to convert tensor numpy -> tensor within forward method
     def forward(self, x):
         out = self.fc1(x)
         out = self.relu(out)

@@ -13,7 +13,6 @@ and MCTS simulation games
 """
 
 import numpy as np
-from MCTS import search
 
 CONNECT4_GRID = 42
 EMPTY = 0
