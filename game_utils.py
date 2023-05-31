@@ -13,6 +13,8 @@ and MCTS simulation games
 """
 
 import numpy as np
+import NeuralNetwork
+from mcts import MCTS
 
 CONNECT4_GRID = 42
 EMPTY = 0
@@ -26,6 +28,8 @@ class Game():
         # stored as root node in game tree
         # stored during duration of Game object
         self.board = np.zeros(CONNECT4_GRID)
+        self.player_one_mark = 1
+        self.player_two_mark = 2
 
     # playing the selected move on the game board for an episode per epoch
     # we train the network after each epoch
@@ -35,7 +39,9 @@ class Game():
 
     def is_win(self, column, player_mark):
         inarow = 3
-        row =  min([r for r in range(ROWS) if self.board[column + (r * COLUMNS)] == player_mark])
+        target_rows = [r for r in range(ROWS) if self.board[column + (r * COLUMNS)] == player_mark]
+        if len(target_rows) == 0: return False
+        row =  min(target_rows)
         
         def count(offset_row, offset_column):
             for i in range(1, inarow + 1):
@@ -67,94 +73,52 @@ class Game():
             return (True, 1)
         if self.is_tie():
             return (True, 0)
+        if self.is_win(column, self.opponent_move(player_mark)):
+            return (True, -1)
         else:
-            # opponent won -> current player -> -1 score in backprop
-            # opponent has won or game not finished yet
+            # game not finished yet
             return (False, None)
+    
+    def opponent_move(self, player_mark):
+        if player_mark != 1 and player_mark != 2:
+            raise ValueError("Received invalid mark on board")
+        return 3 - player_mark
 
 
     # plays one game between 2 players for one alphazero net in training
     # per game -> we run 500 MCTS simulations per turn
     # each MCTS simulation will return a move placed on the Game board
-    def self_play(self):
-        pass
-
-    # deciding which model is better in training
-    def pit_models(self):
-        pass
-
-#---- Static methods to facilitate MCTS simulations-------
-# will have to refactor later into MCTS utils class most likely
-    @staticmethod
-    def opponent_player_mark(player_mark):
-        if player_mark != 1 and player_mark != 2:
-            raise ValueError("Received invalid mark on board")
-        return 3 - player_mark
-    
-    @staticmethod
-    def opponent_score(player_score):
-        if player_score < 0 or player_score > 1:
-            raise ValueError("Given scoer for game is out of range")
-        return 1 - player_score
-    
-    @staticmethod
-    def get_avail_moves(board):
-        unfilled_cols = [move for move in range(COLUMNS) if board[move] == EMPTY]
-        return unfilled_cols
-    
-    @staticmethod
-    def get_illegal_moves(board):
-        filled_cols = [move for move in range(COLUMNS) if board[move] != EMPTY]
-        return filled_cols
-    
-    # terrible software design right now -> need to refactor tomorrow
-    # playing the selected move on the game board for an episode per epoch
-    # we train the network after each epoch
-    @staticmethod
-    def play_move(board, column, player_mark):
-        row = max([r for r in range(ROWS) if board[column + (r * COLUMNS)] == EMPTY])
-        board[column + (row * COLUMNS)] = player_mark
-
-    @staticmethod
-    def is_win(board, column, player_mark):
-        inarow = 3
-        row =  min([r for r in range(ROWS) if board[column + (r * COLUMNS)] == player_mark])
+    # train the model after every game of self play
+    def self_play(self, alphazero_net):
+        """plays one game between player 1 and player 2"""
+        """we will do dataset up here for losses """
+        """we will play the alphazero net as player 1"""
+        """the first move on the board will be by player 1 -> player 2 passed in as root node initially"""
+        is_finished = False
+        root_player_mark = self.opponent_move(self.player_one_mark)
+        while not is_finished:
+            # initial move for player 1
+            next_best_move = MCTS().search(
+                                    alphazero_net, 500,
+                                    root_player_mark,
+                                    self.board
+                                    )
+            played_mark = self.opponent_move(root_player_mark)
+            self.play_move(next_best_move, played_mark)
+            print(f"board after move:\n{np.reshape(self.board, (6,7))}")
+            is_finished, score = self.score_game(next_best_move, played_mark)
+            root_player_mark = played_mark
         
-        def count(offset_row, offset_column):
-            for i in range(1, inarow + 1):
-                r = row + offset_row * i
-                c = column + offset_column * i
-                if (
-                    r < 0
-                    or r >= ROWS
-                    or c < 0
-                    or c >= COLUMNS
-                    or board[c + (r * COLUMNS)] != player_mark
-                ):
-                    return i - 1
-            return inarow
+        print(f"finished game:\n{self.board}")
+            
 
-        return (
-            count(1, 0) >= inarow  # vertical.
-            or (count(0, 1) + count(0, -1)) >= inarow  # horizontal.
-            or (count(-1, -1) + count(1, 1)) >= inarow  # top left diagonal.
-            or (count(-1, 1) + count(1, -1)) >= inarow  # top right diagonal.
-        )
+# -------sanity check for self-play Game ---------
+def main():
+    connect4_game = Game()
+    alphazero_net = NeuralNetwork.AlphaZeroNet()
+    connect4_game.self_play(alphazero_net)
 
-    @staticmethod
-    def is_tie(board):
-        return not(any(mark == EMPTY for mark in board[0: COLUMNS + 1]))
-    
-    # we score the game prior to player_mark placing mark on board
-    @staticmethod
-    def score_game(board, column, player_mark):
-        if Game.is_win(board, column, player_mark):
-            return (True, 1)
-        if Game.is_tie(board):
-            return (True, 0)
-        else:
-            # opponent won -> current player -> -1 score in backprop
-            # opponent has won or game not finished yet
-            return (False, None)
+if __name__ == '__main__':
+    main()
 
 
