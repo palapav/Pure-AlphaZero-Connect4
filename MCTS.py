@@ -128,10 +128,30 @@ class MCTS():
             # recurses down branch of best_child_node (highest UCB score)
             best_child_node = MCTS.select_highest_UCB(children_nodes)
             return self.select(best_child_node)
+    
+    @staticmethod
+    def add_dirichlet_noise(leaf_node):
+        leaf_node_board = leaf_node.board
+        avail_moves = mcts_utils.get_avail_moves(leaf_node_board)
+        
+        # select only legal moves
+        leaf_node_cp = leaf_node.child_priors
+        valid_child_priors = leaf_node_cp[leaf_node_cp != 0.00000000]
+        valid_cp_indices = np.arange(len(leaf_node_cp))[leaf_node_cp != 0.00000000]
+
+        # dirichlet distribution
+        epsilon = 0.25
+        # 96, 128, 192, 256
+
+        valid_child_priors = (1 - epsilon) * np.array(valid_child_priors) + \
+        epsilon * np.random.dirichlet(np.zeros([len(valid_child_priors)], dtype=np.float32) + 192)
+
+        leaf_node_cp[valid_cp_indices] = valid_child_priors
+        leaf_node.child_priors = leaf_node_cp
+
 
     def expand(self, leaf_node, alphazero_net):
-        """did not add dirichlet noise to root node yet
-        need to refactor to avoid for loops/maximize numpy"""
+        """need to refactor to avoid for loops/maximize numpy"""
 
         # 42 cell numpy array
         leaf_node_board = leaf_node.board
@@ -147,6 +167,8 @@ class MCTS():
             leaf_node.child_priors[unavailable_moves[i]] = 0.00000000
         
         """dirichlet noise at root node here"""
+        if leaf_node.parent is None:
+            MCTS.add_dirichlet_noise(leaf_node)
             
         # creating new child nodes based on all available actions
         new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
@@ -223,16 +245,11 @@ class MCTS():
             # backprop -> value estimate
             self.backpropagate(leaf_node)
 
-        # need to make these functions -> avoid accessing variables?
-        # are we returning from pi_policy or from ucb_scores
-        # this is wrong -> we will be returning move with highest # of visits
-        # this is the stochastic pi policy fed by MCTS refined from initial estimate
-        # but initial estimate value itself doesn't improve
+        # stochastic pi policy
         pi_policy_vector = MCTS.create_pi_policy(root_node.children)
         print(f"pi_policy:\n{pi_policy_vector}")
         return np.argmax(pi_policy_vector)
-        # selected move -> highest action from pi_vector
-        # out here we return the selected move & append to our dataset -> done from run_alphazero
+        # add to training dataset
     
 #--------- MCTS search sanity check --------------
 def main():
@@ -249,7 +266,7 @@ def main():
     # next player turn -> 1, so we pass in player 2
     mcts = MCTS()
     root_player_mark = 2
-    player_one_move = mcts.search(alphazero_nn, 1000, root_player_mark, mcts_test_board)
+    player_one_move = mcts.search(alphazero_nn, 500, root_player_mark, mcts_test_board)
     # should be between columns 0 to 6
     print(f"Player one next best move untrained: {player_one_move}")
 

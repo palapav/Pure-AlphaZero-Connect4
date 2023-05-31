@@ -39,9 +39,7 @@ class Game():
 
     def is_win(self, column, player_mark):
         inarow = 3
-        target_rows = [r for r in range(ROWS) if self.board[column + (r * COLUMNS)] == player_mark]
-        if len(target_rows) == 0: return False
-        row =  min(target_rows)
+        row =  min([r for r in range(ROWS) if self.board[column + (r * COLUMNS)] == player_mark])
         
         def count(offset_row, offset_column):
             for i in range(1, inarow + 1):
@@ -73,8 +71,6 @@ class Game():
             return (True, 1)
         if self.is_tie():
             return (True, 0)
-        if self.is_win(column, self.opponent_move(player_mark)):
-            return (True, -1)
         else:
             # game not finished yet
             return (False, None)
@@ -107,6 +103,7 @@ class Game():
             self.play_move(next_best_move, played_mark)
             print(f"board after move:\n{np.reshape(self.board, (6,7))}")
             is_finished, score = self.score_game(next_best_move, played_mark)
+            if played_mark != self.player_one_mark: pass
             root_player_mark = played_mark
         
         print(f"finished game:\n{self.board}")
