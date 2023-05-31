@@ -9,15 +9,8 @@ import NeuralNetwork
 # MCTS class will call implicit, default constructor that
 # resets search tree per game
 
-# define a node in tree
-
-# did not include dirichlet noise (include later)
 # we don't have a negative one score in implementation when scoring game -> but take into account when backpropping
 class MCTS():
-
-    # Node class defines a Node, which represents
-    # the state of the board along with the refined
-    # pi policy vector, and value estimate for board
     class Node():
         """
         Root node -> empty board
@@ -42,6 +35,7 @@ class MCTS():
             # vector of possible actions probability to take from current network
             # curr node pi policy
             # all zero child priors for terminal leaf nodes
+            """Need to do the above"""
             self.child_priors = network_prob # p vector
             # updated to terminal score for terminal nodes
             self.z_value = value_est
@@ -94,13 +88,7 @@ class MCTS():
             curr_node_visits = child_node.visits
             curr_node_parent_visits = parent_node.visits
 
-            # columns 1 through 7 in connect4 (0 indexed here)
-            # played move -> to generate child board b/c root node has no action taken
-            # what should action_taken represent?
             played_move = child_node.action_taken
-            # need to use parents? -> don't think so
-            # initial estimate of taking an action from state s (child node)
-            # according to nn policy
             """look back at this again -> parent node """
             child_move_prob = parent_node.child_priors[played_move]
 
@@ -113,9 +101,9 @@ class MCTS():
                                             )
             children_ucb_scores.append(child_ucb_score)
 
-            # finding index of max ucb element
-            best_child_index = children_ucb_scores.index(max(children_ucb_scores))
-            return children_nodes[best_child_index]
+        # finding index of max ucb element
+        best_child_index = children_ucb_scores.index(max(children_ucb_scores))
+        return children_nodes[best_child_index]
 
 
     def select(self, root_node):
@@ -131,9 +119,6 @@ class MCTS():
     
     @staticmethod
     def add_dirichlet_noise(leaf_node):
-        leaf_node_board = leaf_node.board
-        avail_moves = mcts_utils.get_avail_moves(leaf_node_board)
-        
         # select only legal moves
         leaf_node_cp = leaf_node.child_priors
         valid_child_priors = leaf_node_cp[leaf_node_cp != 0.00000000]
@@ -142,7 +127,6 @@ class MCTS():
         # dirichlet distribution
         epsilon = 0.25
         # 96, 128, 192, 256
-
         valid_child_priors = (1 - epsilon) * np.array(valid_child_priors) + \
         epsilon * np.random.dirichlet(np.zeros([len(valid_child_priors)], dtype=np.float32) + 192)
 
@@ -156,15 +140,10 @@ class MCTS():
         # 42 cell numpy array
         leaf_node_board = leaf_node.board
         available_moves = mcts_utils.get_avail_moves(leaf_node_board)
+        print(f"available moves: {available_moves}")
         num_child_outcomes = len(available_moves)
         if num_child_outcomes == 0:
             raise ValueError("leaf node is full -> should not be here in expansion state")
-        
-        unavailable_moves = mcts_utils.get_illegal_moves(leaf_node_board)
-        # we only need to do this at the most promising leaf nodes -> outside of the for loop
-        # we used the same iterating variable in the inner and outer for loop
-        for i in range(len(unavailable_moves)):
-            leaf_node.child_priors[unavailable_moves[i]] = 0.00000000
         
         """dirichlet noise at root node here"""
         if leaf_node.parent is None:
@@ -184,11 +163,16 @@ class MCTS():
             child_priors = child_priors.detach().numpy()
             value_est = value_est.item()
 
+            # set unavailable moves child priors to zeroes
+            unavailable_moves = mcts_utils.get_illegal_moves(new_child_board)
+            child_priors[unavailable_moves] = 0.00000000
+
+
             # determines is_terminal attribute and terminal_score (reward)
             # before finally creating new children nodes
             is_finished, reward = mcts_utils.score_game(new_child_board, available_moves[i], new_child_mark)
             # refactor to avoid to smaller objects to avoid Node constructor too many parameters
-            # Node class owned by MCTS object 
+            # Node class owned by MCTS object
             new_child_node = self.Node(
                                 new_child_board, new_child_mark, leaf_node,
                                 child_priors, value_est, is_finished, reward, 
@@ -211,7 +195,8 @@ class MCTS():
             if curr_node.player_mark == 1:
                 if leaf_node.player_mark == 1: curr_node.wins += leaf_node.z_value
                 else: curr_node.wins += (-1 * leaf_node.z_value)
-            elif curr_node.player_mark == 2:
+            # player mark = 2
+            else:
                 if leaf_node.player_mark == 1: curr_node.wins += (-1 * leaf_node.z_value)
                 else: curr_node.wins += leaf_node.z_value
 
@@ -229,6 +214,7 @@ class MCTS():
         # player_mark from previous MCTS search call
         root_node = self.Node(root_game_board, player_mark, None, child_priors, value_est)
         for i in range(num_simulations):
+            print(f"Simulation:{i}")
             # selection
             leaf_node = self.select(root_node)
 

@@ -95,7 +95,7 @@ class Game():
         while not is_finished:
             # initial move for player 1
             next_best_move = MCTS().search(
-                                    alphazero_net, 500,
+                                    alphazero_net, 100,
                                     root_player_mark,
                                     self.board
                                     )
