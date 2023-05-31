@@ -53,10 +53,12 @@ class MCTS():
     def create_pi_policy(root_children_nodes):
         # our children nodes need to be ordered via the possible action
         # test here -> see if child_node action takens are in order
+        print(f"Type of root children {type(root_children_nodes)}")
         if len(root_children_nodes) != 7:
             raise ValueError("Every node must have 7 children probability")
         # returns pi policy vector (needs to be of length 7 always -> 0s for illegal)
-        children_visits = np.array([child_node.curr_node_visits for child_node in root_children_nodes])
+        children_visits = np.array([child_node.visits for child_node in root_children_nodes])
+        print(f"root children visits:\n{children_visits}")
         total_children_visits = np.sum(children_visits)
         root_pi_policy = children_visits / total_children_visits
         return root_pi_policy
@@ -134,49 +136,36 @@ class MCTS():
         # 42 cell numpy array
         leaf_node_board = leaf_node.board
         available_moves = Game.get_avail_moves(leaf_node_board)
-        print(f"available moves:\n{available_moves}")
         num_child_outcomes = len(available_moves)
         if num_child_outcomes == 0:
             raise ValueError("leaf node is full -> should not be here in expansion state")
         
-        # unavailable_moves = Game.get_illegal_moves(leaf_node_board)
-        # for i in range(len(unavailable_moves)):
-        #     leaf_node.child_priors[unavailable_moves[i]] = 0.00000000
-
-        # adding the dirichlet noise
-        # if true -> root node
-        # if leaf_node.parent is None:
-        #     Node.add_dirichlet_noise(leaf_node)
+        unavailable_moves = Game.get_illegal_moves(leaf_node_board)
+        # we only need to do this at the most promising leaf nodes -> outside of the for loop
+        # we used the same iterating variable in the inner and outer for loop
+        for i in range(len(unavailable_moves)):
+            leaf_node.child_priors[unavailable_moves[i]] = 0.00000000
+        
+        """dirichlet noise at root node here"""
             
         # creating new child nodes based on all available actions
         new_child_mark = Game.opponent_player_mark(leaf_node.player_mark)
-        print(f"Number of child outcomes: {num_child_outcomes}")
         for i in range(num_child_outcomes):
             new_child_board = copy.deepcopy(leaf_node_board)
             # inserting opponent's mark onto new child board
             # as new nodes own the next board positioning
-            print(f"move to be placed: {available_moves[i]}")
             Game.play_move(new_child_board, available_moves[i], new_child_mark)
             # new_child_board[available_moves[i]] = opp_mark
 
             """insert p vector and value estimate for new child board (with child player move played) """
             child_priors, value_est = alphazero_net.forward(torch.FloatTensor(new_child_board))
             child_priors = child_priors.detach().numpy()
-            unavailable_moves = Game.get_illegal_moves(new_child_board)
-            for i in range(len(unavailable_moves)):
-                child_priors[unavailable_moves[i]] = 0.00000000
             value_est = value_est.item()
 
             # determines is_terminal attribute and terminal_score (reward)
             # before finally creating new children nodes
-            print(f"new child board:\n{np.reshape(new_child_board, (6,7))}")
-            print(f"action taken (already placed):\n{available_moves[i]}")
-            print(f"just placed player mark:\n{new_child_mark}")
-            print(f"move placed before scoring: {available_moves[i]}")
             is_finished, reward = Game.score_game(new_child_board, available_moves[i], new_child_mark)
-            # creates new child node in MCTS tree for this turn
-            # may be too many parameters for one object -> refactor into smaller objects
-            # to build larger Node
+            # refactor to avoid to smaller objects to avoid Node constructor too many parameters
             # Node class owned by MCTS object 
             new_child_node = self.Node(
                                 new_child_board, new_child_mark, leaf_node,
@@ -218,7 +207,6 @@ class MCTS():
         # player_mark from previous MCTS search call
         root_node = self.Node(root_game_board, player_mark, None, child_priors, value_est)
         for i in range(num_simulations):
-            print(f"simulation: {i}")
             # selection
             leaf_node = self.select(root_node)
 
@@ -240,8 +228,8 @@ class MCTS():
         # this is wrong -> we will be returning move with highest # of visits
         # this is the stochastic pi policy fed by MCTS refined from initial estimate
         # but initial estimate value itself doesn't improve
-        root_node_children = root_node
-        pi_policy_vector = MCTS.create_pi_policy(root_node_children)
+        pi_policy_vector = MCTS.create_pi_policy(root_node.children)
+        print(f"pi_policy:\n{pi_policy_vector}")
         return np.argmax(pi_policy_vector)
         # selected move -> highest action from pi_vector
         # out here we return the selected move & append to our dataset -> done from run_alphazero
@@ -261,7 +249,7 @@ def main():
     # next player turn -> 1, so we pass in player 2
     mcts = MCTS()
     root_player_mark = 2
-    player_one_move = mcts.search(alphazero_nn, 10, root_player_mark, mcts_test_board)
+    player_one_move = mcts.search(alphazero_nn, 1000, root_player_mark, mcts_test_board)
     # should be between columns 0 to 6
     print(f"Player one next best move untrained: {player_one_move}")
 
