@@ -91,7 +91,7 @@ class Game():
         """we will play the alphazero net as player 1"""
         """the first move on the board will be by player 1 -> player 2 passed in as root node initially"""
         # store s, p, v values
-        dataset = []
+        game_dataset = []
         is_finished = False
         score = None
         root_player_mark = self.opponent_move(self.player_one_mark)
@@ -100,26 +100,42 @@ class Game():
             next_best_move = MCTS().search(
                                     alphazero_net, 500,
                                     root_player_mark,
-                                    self.board
+                                    self.board,
+                                    game_dataset
                                     )
             played_mark = self.opponent_move(root_player_mark)
             self.play_move(next_best_move, played_mark)
             # print(f"board after move:\n{np.reshape(self.board, (6,7))}")
             is_finished, score = self.score_game(next_best_move, played_mark)
             root_player_mark = played_mark
+
         
-        if root_player_mark != self.player_one_mark: pass
+        if root_player_mark != self.player_one_mark and score == 1:
+            """convert/optimize to numpy later"""
+            """ update z value for all of training data when player 2 wins; set -1 score"""
+            """terminal board child priors -> all zeroes """
+            for index, training_example in enumerate(game_dataset): training_example[2] = -1
+        else:
+            """convert/optimize to numpy later """
+            """update z value for all of training data when player 1 wins/ties or player 2 ties (can use score directly)"""
+            """terminal board child priors need to be all zeroes"""
+            for index, training_example in enumerate(game_dataset): training_example[2] = score
+
+            
 
         print(f"finished game:\n{np.reshape(self.board, (6, 7))}")
         print(f"winning player:\n{played_mark}")
         print(f"winning score:\n{score}")
+
+        return game_dataset
             
 
 # -------sanity check for self-play Game ---------
 def main():
     connect4_game = Game()
     alphazero_net = NeuralNetwork.AlphaZeroNet()
-    connect4_game.self_play(alphazero_net)
+    self_play_data = connect4_game.self_play(alphazero_net)
+    print(f"One game of self play training data:\n{self_play_data}")
 
 if __name__ == '__main__':
     main()

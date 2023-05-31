@@ -58,6 +58,16 @@ class MCTS():
 
         actions_taken = np.array([child_node.action_taken for child_node in root_children_nodes])
         return root_pi_policy, actions_taken
+    
+    @staticmethod
+    def set_illegal_moves(pi_policy_vector, actions):
+        if len(pi_policy_vector) != len(actions):
+            raise ValueError("Number of child priors do not equal number of available actions")
+        
+        root_pi_policy = np.zeros(7)
+        root_pi_policy[actions] = pi_policy_vector
+
+        return root_pi_policy
 
     @staticmethod
     def calculate_ucb_score(curr_node_wins, curr_node_visits, curr_node_prob, parent_node_visits):
@@ -230,8 +240,11 @@ class MCTS():
 
         # stochastic pi policy
         pi_policy_vector, chosen_actions = MCTS.create_pi_policy(root_node.children)
-        return chosen_actions[np.argmax(pi_policy_vector)]
-        # add to training dataset
+        """ reform pi policy vector to include all zeroed illegal moves """
+        root_pi_policy = MCTS.set_illegal_moves(pi_policy_vector, chosen_actions)
+
+        training_dataset.append([root_game_board, root_pi_policy, None])
+        return np.argmax(root_pi_policy)
     
 #--------- MCTS search sanity check --------------
 def main():
