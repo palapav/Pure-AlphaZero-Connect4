@@ -90,23 +90,29 @@ class Game():
         """we will do dataset up here for losses """
         """we will play the alphazero net as player 1"""
         """the first move on the board will be by player 1 -> player 2 passed in as root node initially"""
+        # store s, p, v values
+        dataset = []
         is_finished = False
+        score = None
         root_player_mark = self.opponent_move(self.player_one_mark)
         while not is_finished:
             # initial move for player 1
             next_best_move = MCTS().search(
-                                    alphazero_net, 100,
+                                    alphazero_net, 500,
                                     root_player_mark,
                                     self.board
                                     )
             played_mark = self.opponent_move(root_player_mark)
             self.play_move(next_best_move, played_mark)
-            print(f"board after move:\n{np.reshape(self.board, (6,7))}")
+            # print(f"board after move:\n{np.reshape(self.board, (6,7))}")
             is_finished, score = self.score_game(next_best_move, played_mark)
-            if played_mark != self.player_one_mark: pass
             root_player_mark = played_mark
         
-        print(f"finished game:\n{self.board}")
+        if root_player_mark != self.player_one_mark: pass
+
+        print(f"finished game:\n{np.reshape(self.board, (6, 7))}")
+        print(f"winning player:\n{played_mark}")
+        print(f"winning score:\n{score}")
             
 
 # -------sanity check for self-play Game ---------

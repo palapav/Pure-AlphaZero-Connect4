@@ -47,15 +47,17 @@ class MCTS():
     @staticmethod
     # stochastic pi policy -> refined from initial estimate via MCTS
     def create_pi_policy(root_children_nodes):
-        # our children nodes need to be ordered via the possible action
-        # test here -> see if child_node action takens are in order
+        """doesn't have 7 nodes -> indices may be wrong"""
+        # need to test ordered children nodes
         if len(root_children_nodes) <= 0:
             raise ValueError("Root node must have at least one child node")
-        # returns pi policy vector (needs to be of length 7 always -> 0s for illegal)
+
         children_visits = np.array([child_node.visits for child_node in root_children_nodes])
         total_children_visits = np.sum(children_visits)
         root_pi_policy = children_visits / total_children_visits
-        return root_pi_policy
+
+        actions_taken = np.array([child_node.action_taken for child_node in root_children_nodes])
+        return root_pi_policy, actions_taken
 
     @staticmethod
     def calculate_ucb_score(curr_node_wins, curr_node_visits, curr_node_prob, parent_node_visits):
@@ -69,10 +71,7 @@ class MCTS():
         exploration_term = C * curr_node_prob * math.sqrt(math.log(parent_node_visits) / curr_node_visits)
         return exploitation_term + exploration_term
     
-    # doesn't need to be instance method
-    # is it better to store children UCB scores in every node 
-    # or to recalculate every single time?
-    # to store -> need to do at end of backprop -> getting calculated regardless
+    # store ucb scores ?
     @staticmethod
     def select_highest_UCB(children_nodes):
         # no numpy here?
@@ -101,7 +100,7 @@ class MCTS():
                                             )
             children_ucb_scores.append(child_ucb_score)
 
-        # finding index of max ucb element
+        # finding index of max ucb element (outside for loop lol)
         best_child_index = children_ucb_scores.index(max(children_ucb_scores))
         return children_nodes[best_child_index]
 
@@ -140,7 +139,6 @@ class MCTS():
         # 42 cell numpy array
         leaf_node_board = leaf_node.board
         available_moves = mcts_utils.get_avail_moves(leaf_node_board)
-        print(f"available moves: {available_moves}")
         num_child_outcomes = len(available_moves)
         if num_child_outcomes == 0:
             raise ValueError("leaf node is full -> should not be here in expansion state")
@@ -207,14 +205,13 @@ class MCTS():
                root_game_board, training_dataset=None):
         # create the root node here (current state of the board)
         # game board is 42 cell 1D numpy array -> passed from self-play
-        # player_mark is the player whose about to place a mark on
+        # player_mark is the player mark just placed on the board
         child_priors, value_est = alphazero_net.forward(torch.FloatTensor(root_game_board))
         child_priors = child_priors.detach().numpy()
         value_est = value_est.item()
         # player_mark from previous MCTS search call
         root_node = self.Node(root_game_board, player_mark, None, child_priors, value_est)
         for i in range(num_simulations):
-            print(f"Simulation:{i}")
             # selection
             leaf_node = self.select(root_node)
 
@@ -232,9 +229,8 @@ class MCTS():
             self.backpropagate(leaf_node)
 
         # stochastic pi policy
-        pi_policy_vector = MCTS.create_pi_policy(root_node.children)
-        print(f"pi_policy:\n{pi_policy_vector}")
-        return np.argmax(pi_policy_vector)
+        pi_policy_vector, chosen_actions = MCTS.create_pi_policy(root_node.children)
+        return chosen_actions[np.argmax(pi_policy_vector)]
         # add to training dataset
     
 #--------- MCTS search sanity check --------------
