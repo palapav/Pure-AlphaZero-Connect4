@@ -113,19 +113,15 @@ class Game():
         if root_player_mark != self.player_one_mark and score == 1:
             """convert/optimize to numpy later"""
             """ update z value for all of training data when player 2 wins; set -1 score"""
-            """terminal board child priors -> all zeroes """
             for index, training_example in enumerate(game_dataset): training_example[2] = -1
         else:
             """convert/optimize to numpy later """
             """update z value for all of training data when player 1 wins/ties or player 2 ties (can use score directly)"""
-            """terminal board child priors need to be all zeroes"""
             for index, training_example in enumerate(game_dataset): training_example[2] = score
 
-            
-
-        print(f"finished game:\n{np.reshape(self.board, (6, 7))}")
-        print(f"winning player:\n{played_mark}")
-        print(f"winning score:\n{score}")
+        # print(f"finished game:\n{np.reshape(self.board, (6, 7))}")
+        # print(f"winning player:\n{played_mark}")
+        # print(f"winning score:\n{score}")
 
         return game_dataset
             

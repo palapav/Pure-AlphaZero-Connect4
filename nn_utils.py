@@ -44,11 +44,11 @@ class CustomDataset(Dataset):
         return input_tensor, labels_tensor
 
 
-def save_model():
-    pass
-
-def load_model():
-    pass
+def prepare_training_data(game_dataset):
+    train_dataset = CustomDataset(game_dataset)
+    """ batch size of 32 too much with so little data? """
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    return train_loader
 
 def save_checkpoint():
     pass
@@ -58,8 +58,3 @@ def load_checkpoint():
 
 def graph_loss():
     pass
-
-def prepare_training_data(game_dataset):
-    train_dataset = CustomDataset(game_dataset)
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    return train_loader
