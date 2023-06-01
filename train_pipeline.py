@@ -1,4 +1,12 @@
 
+class Trainer():
+    def __init__(self, net=None, optim=None, loss_function=None, train_loader=None):
+        self.net = net
+        self.optim = optim
+        self.loss_function = loss_function
+        self.train_loader = train_loader
+
+
 def run_alphazero(num_iters):
     """
     10 iterations, 5 self play games per iteration, 500 MCTS simulations per turn in a self play game
@@ -8,6 +16,8 @@ def run_alphazero(num_iters):
     save model in checkpoint
     record loss in terminal and graphically
     redo process
+
+    maybe we can train after every iteration -> 
     """
 
     for i in range(num_iters):
