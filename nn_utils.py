@@ -4,6 +4,7 @@ training of alphazero and also for graphing and generating loss data
 """
 import numpy as np
 import torch
+import datetime
 from torch.utils.data import Dataset, DataLoader
 
 class AlphaLoss(torch.nn.Module):
@@ -39,22 +40,30 @@ class CustomDataset(Dataset):
         # input features at index 0 (board state)
         input_tensor = torch.FloatTensor(train_example[0])
         # policy vector at index 1 and value at index 2
-        labels_tensor = torch.tensor([train_example[1], train_example[2]])
+        # can make this faster -> reduce copying
+        labels_tensor = torch.tensor(np.append(train_example[1], train_example[2]))
 
         return input_tensor, labels_tensor
 
 
-def prepare_training_data(game_dataset):
-    train_dataset = CustomDataset(game_dataset)
+def prepare_training_data(games_dataset):
+    """extremely slow -> consider converting list to single np array before converting to tensor"""
+    train_dataset = CustomDataset(games_dataset)
     """ batch size of 32 too much with so little data? """
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     return train_loader
 
-def save_checkpoint():
-    pass
+def save_checkpoint(net, iter_num):
+    # current_datetime = datetime.datetime.now()
+    # current_datetime_str = current_datetime.strftime("%m-%d-%Y %I:%M:%S %p")
+    # need to save to particular file
+    checkpoint_path = f"checkpoint-iterq{iter_num}"
+    torch.save(net.state.dict(), checkpoint_path)
 
-def load_checkpoint():
-    pass
+def load_checkpoint(net, iter_num):
+    checkpoint_path = f"checkpoint-iterz{iter_num}"
+    net.load_state_dict(torch.load(checkpoint_path))
+    return net
 
 def graph_loss():
     pass

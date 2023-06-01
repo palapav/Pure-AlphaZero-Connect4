@@ -1,6 +1,6 @@
 import NeuralNetwork
 from game_utils import Game
-from nn_utils import AlphaLoss, prepare_training_data
+from nn_utils import AlphaLoss, prepare_training_data, save_checkpoint
 import torch.optim as optim
 
 class Trainer():
@@ -16,17 +16,25 @@ class Trainer():
             epoch_loss = 0.0
             epoch_steps = 0
 
-            for training_example in self.train_loader:
-                
+            for training_data in self.train_loader:
                 # all tensors (actual)
-                board_state = training_example[0]
-                pi_policy, z_value = training_example[1]
+                board_states = training_data[0]
+                labels = training_data[1]
+                print(f"labeled output:\n{labels}")
+                pi_policy = labels[:,:-1]
+                print(f"pi policy:\n{pi_policy}")
+                z_value = labels[:,-1]
+                print(f"z_value:\n{z_value}")
 
                 # zero the gradient in the optimizer
                 self.optim.zero_grad()
 
                 # get the output of the network (predicted)
-                p_vector, value_est = self.net(board_state)
+                p_vector, value_est = self.net(board_states)
+                print(f"value_est:\n{value_est}")
+
+                if len(z_value) != len(value_est): raise ValueError("predicted and actual value have discrepancy")
+                # give us a collection of p vectors and value estimates
 
                 # computing loss using loss function
                 loss = self.loss_function(z_value, value_est, p_vector, pi_policy)
@@ -48,7 +56,7 @@ class Trainer():
 
 
 
-def train_alphazero(num_iters=10, num_episodes=10):
+def train_alphazero(num_iters=10, num_episodes=2):
     """
     10 iterations, 10 self play games per iteration, 500 MCTS simulations per turn in a self play game
     once self play game is done -> game dataset is created
@@ -77,19 +85,21 @@ def train_alphazero(num_iters=10, num_episodes=10):
         # 10 episodes/self play games per iteration
         for e in range(num_episodes):
             single_game_dataset = Game().self_play(net)
+            print(f"Game {e} finished for iteration {i}")
             # check on append operation
             training_examples += single_game_dataset
 
+        print(f"Preparing Training Data for Iteration {i}")
         train_loader = prepare_training_data(training_examples)
         trainer = Trainer(net=net, optim=opt, loss_function=loss_function, train_loader=train_loader)
-        updated_net, losses = trainer.train(num_epochs=10)
+        print(f"About to Train on Iteration {i}--")
+        updated_net, losses = trainer.train(epochs=10)
 
-        print(f"Losses for iteration 1:\n{losses}")
+        print(f"Losses for iteration {i}:\n{losses}")
 
         """pitting here or continuous update? -> should be after every game"""
         net = updated_net
-
-    pass
+        save_checkpoint(net, i)
 
 def main():
     # 10 iterations

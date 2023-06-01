@@ -241,6 +241,7 @@ class MCTS():
         # stochastic pi policy
         pi_policy_vector, chosen_actions = MCTS.create_pi_policy(root_node.children)
         """ reform pi policy vector to include all zeroed illegal moves """
+        """check here whether zeroes are being misrrepresented"""
         root_pi_policy = MCTS.set_illegal_moves(pi_policy_vector, chosen_actions)
 
         training_dataset.append([root_game_board, root_pi_policy, None])
