@@ -19,7 +19,11 @@ class AlphaLoss(torch.nn.Module):
         value_error = (value_est - z_value) ** 2
 
         # cross entropy loss for policy
-        cross_entropy = torch.dot(pi_vector, torch.log(p_vector))
+        print(f"pi_vector size:\n{pi_vector.size()}")
+        print(f"p_vector size:\n{p_vector.size()}")
+        pi_vector_transpose = pi_vector.t()
+        cross_entropy = torch.matmul(pi_vector_transpose, torch.log(p_vector))
+        print(f"cross entropy:\n{cross_entropy}")
 
         """no regularization yet (go back and include) -> involves C param, model weights (norm)"""
 

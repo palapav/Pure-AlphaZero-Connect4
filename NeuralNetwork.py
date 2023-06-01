@@ -26,8 +26,16 @@ class AlphaZeroNet(nn.Module):
         # splitting up output layer -> softmax first 7 classes (p vector)
         # last 8th class -> value estimate
 
-        prob_vector = self.softmax(out[0:7])
-        value_est=out[7]
+        """use if/else here depending on if we are getting a 1D or 2D tensor"""
+        """later convert everything to 2D tensor -> change later to use view function -> better code"""
+
+        if out.ndim == 1:
+            prob_vector = self.softmax(out[0:7])
+            value_est=out[7]
+        elif out.ndim == 2:
+            # could use -1
+            prob_vector = self.softmax(out[:,0:7])
+            value_est=out[:,7]
 
         return (prob_vector, value_est)
 

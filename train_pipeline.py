@@ -29,6 +29,9 @@ class Trainer():
                 # zero the gradient in the optimizer
                 self.optim.zero_grad()
 
+                print(f"Board states dimensions: {board_states.size()}")
+                print(f"num of z values: {len(z_value)}")
+
                 # get the output of the network (predicted)
                 p_vector, value_est = self.net(board_states)
                 print(f"value_est:\n{value_est}")
