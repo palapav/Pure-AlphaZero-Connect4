@@ -13,6 +13,7 @@ def alphazero_agent():
     takes in observation and outputs move based on p_vector outputted by network
     loaded from memory
     """
+    # sampling legal vs illegal actions
     pass
 
 def evaluate_agent():

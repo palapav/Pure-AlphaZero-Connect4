@@ -69,5 +69,8 @@ def load_checkpoint(net, iter_num):
     net.load_state_dict(torch.load(checkpoint_path))
     return net
 
+# save board states (reshape), outputted policy vector, value estimates
+# early in training vs later in training
+
 def graph_loss():
     pass

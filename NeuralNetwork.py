@@ -13,6 +13,7 @@ class AlphaZeroNet(nn.Module):
         self.relu = nn.ReLU()
         # along rows dimension
         self.softmax = nn.Softmax(dim=0)
+        # tanh here
     
     # x is the 42 input observation board
     # may be bad practice to convert tensor numpy -> tensor within forward method
@@ -31,10 +32,12 @@ class AlphaZeroNet(nn.Module):
 
         if out.ndim == 1:
             prob_vector = self.softmax(out[0:7])
+            # tanh to this
             value_est=out[7]
         elif out.ndim == 2:
             # could use -1
             prob_vector = self.softmax(out[:,0:7])
+            # tanh to this
             value_est=out[:,7]
 
         return (prob_vector, value_est)

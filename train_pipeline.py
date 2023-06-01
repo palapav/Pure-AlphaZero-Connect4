@@ -90,10 +90,13 @@ def train_alphazero(num_iters=10, num_episodes=2):
             single_game_dataset = Game().self_play(net)
             print(f"Game {e} finished for iteration {i}")
             # check on append operation
+            # fixed size replay buffer (make it 100000) (if it ever gets filled up -> drop older policy examples)
             training_examples += single_game_dataset
+            # save every 20 or 50
 
         print(f"Preparing Training Data for Iteration {i}")
         train_loader = prepare_training_data(training_examples)
+        # drop the last batch
         trainer = Trainer(net=net, optim=opt, loss_function=loss_function, train_loader=train_loader)
         print(f"About to Train on Iteration {i}--")
         updated_net, losses = trainer.train(epochs=10)

@@ -220,7 +220,11 @@ class MCTS():
         child_priors = child_priors.detach().numpy()
         value_est = value_est.item()
         # player_mark from previous MCTS search call
+        # accurate value est for player 2?
+        # backpropagate array -> first entry vs second entry
+        # zero sum property
         root_node = self.Node(root_game_board, player_mark, None, child_priors, value_est)
+        # reduce to 100 simulations, mcts visualizer, hyperparameter tuning (tree depth vs width)
         for i in range(num_simulations):
             # selection
             leaf_node = self.select(root_node)
