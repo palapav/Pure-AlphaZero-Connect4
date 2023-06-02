@@ -92,7 +92,7 @@ def train_alphazero(num_iters=10, num_episodes=2):
             # check on append operation
             # fixed size replay buffer (make it 100000) (if it ever gets filled up -> drop older policy examples)
             training_examples += single_game_dataset
-            # save every 20 or 50
+            # save every 20 or 50 (s, p, v)
 
         print(f"Preparing Training Data for Iteration {i}")
         train_loader = prepare_training_data(training_examples)
@@ -103,7 +103,7 @@ def train_alphazero(num_iters=10, num_episodes=2):
 
         print(f"Losses for iteration {i}:\n{losses}")
 
-        """pitting here or continuous update? -> should be after every game"""
+        """pitting here or continuous update? -> should be after every game?"""
         net = updated_net
         save_checkpoint(net, i)
 

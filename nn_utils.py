@@ -20,8 +20,11 @@ class AlphaLoss(torch.nn.Module):
 
         # cross entropy loss for policy
         print(f"pi_vector size:\n{pi_vector.size()}")
+        print(f"pi vector: {pi_vector}")
         print(f"p_vector size:\n{p_vector.size()}")
+        print(f"p vector: {p_vector}")
         pi_vector_transpose = pi_vector.t()
+        print(f"pi_vector transpose size:\n{pi_vector_transpose.size()}")
         cross_entropy = torch.matmul(pi_vector_transpose, torch.log(p_vector))
         print(f"cross entropy:\n{cross_entropy}")
 
@@ -54,7 +57,8 @@ def prepare_training_data(games_dataset):
     """extremely slow -> consider converting list to single np array before converting to tensor"""
     train_dataset = CustomDataset(games_dataset)
     """ batch size of 32 too much with so little data? """
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    # set drop last to true
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, drop_last=True)
     return train_loader
 
 def save_checkpoint(net, iter_num):
