@@ -16,7 +16,7 @@ class AlphaLoss(torch.nn.Module):
     # inputs are all tensors
     def forward(self, z_value, value_est, p_vector, pi_vector):
         # MSE for value
-        value_error = (value_est - z_value) ** 2
+        mse_error = (value_est - z_value) ** 2
 
         # cross entropy loss for policy
         p_vector_transpose = p_vector.t()
@@ -29,7 +29,7 @@ class AlphaLoss(torch.nn.Module):
 
         # taking mean() of custom loss func -> to use loss.backward() expects scalar outcome
         # summing over MSE and Cross entropy (has negative in it)
-        return (value_error - cross_entropy).mean()
+        return (mse_error - cross_entropy).mean()
 
 # creating PyTorch ready dataset for (s, p, v)
 class CustomDataset(Dataset):

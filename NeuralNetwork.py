@@ -14,6 +14,7 @@ class AlphaZeroNet(nn.Module):
         # along rows dimension
         self.softmax = nn.Softmax(dim=0)
         # tanh here
+        self.tanh = nn.Tanh()
     
     # x is the 42 input observation board
     # may be bad practice to convert tensor numpy -> tensor within forward method
@@ -30,15 +31,17 @@ class AlphaZeroNet(nn.Module):
         """use if/else here depending on if we are getting a 1D or 2D tensor"""
         """later convert everything to 2D tensor -> change later to use view function -> better code"""
 
+        # need to seriously fix this
+        # if statement -> 2D tensor (7 x 1, 1x1)
         if out.ndim == 1:
             prob_vector = self.softmax(out[0:7])
             # tanh to this
-            value_est=out[7]
+            value_est= self.tanh(out[7])
         elif out.ndim == 2:
             # could use -1
             prob_vector = self.softmax(out[:,0:7])
             # tanh to this
-            value_est=out[:,7]
+            value_est= self.tanh(out[:,7])
 
         return (prob_vector, value_est)
 

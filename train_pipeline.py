@@ -34,7 +34,8 @@ class Trainer():
 
                 # get the output of the network (predicted)
                 p_vector, value_est = self.net(board_states)
-                print(f"value_est:\n{value_est}")
+                print(f"initial p_vector in training:\n{p_vector}")
+                print(f"initial value_est in training:\n{value_est}")
 
                 if len(z_value) != len(value_est): raise ValueError("predicted and actual value have discrepancy")
                 # give us a collection of p vectors and value estimates
@@ -53,7 +54,7 @@ class Trainer():
             
             # average loss of epoch
             losses.append(epoch_loss / epoch_steps)
-            print("epoch [%d]: loss %.3f" % (epoch+1, losses[-1]))
+            # print("epoch [%d]: loss %.3f" % (epoch+1, losses[-1]))
         
         return self.net, losses
 
@@ -101,8 +102,8 @@ def train_alphazero(num_iters=10, num_episodes=2):
         print(f"About to Train on Iteration {i}--")
         updated_net, losses = trainer.train(epochs=10)
 
-        print(f"Losses for iteration {i}:\n{losses}")
-        print(f"Avg loss for iteration {i}:{losses.mean()}")
+        print(f"Losses for epochs in iteration {i}: {losses}")
+        print(f"Avg loss for iteration {i}:{sum(losses) / len(losses)}")
 
         """pitting here or continuous update? -> should be after every game?"""
         net = updated_net
