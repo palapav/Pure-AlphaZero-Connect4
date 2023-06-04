@@ -19,18 +19,17 @@ class AlphaLoss(torch.nn.Module):
         value_error = (value_est - z_value) ** 2
 
         # cross entropy loss for policy
-        print(f"pi_vector size:\n{pi_vector.size()}")
-        print(f"pi vector: {pi_vector}")
-        print(f"p_vector size:\n{p_vector.size()}")
-        print(f"p vector: {p_vector}")
-        pi_vector_transpose = pi_vector.t()
-        print(f"pi_vector transpose size:\n{pi_vector_transpose.size()}")
-        cross_entropy = torch.matmul(pi_vector_transpose, torch.log(p_vector))
-        print(f"cross entropy:\n{cross_entropy}")
+        p_vector_transpose = p_vector.t()
+        # casting to double -> see if there is a better way
+        cross_entropy = torch.mm(pi_vector.double(), torch.log(p_vector_transpose).double())
+        # performing entire matrix mult -> and slicing first -> see if there is a better way
+        cross_entropy = cross_entropy[:,0]
 
         """no regularization yet (go back and include) -> involves C param, model weights (norm)"""
 
-        return value_error - cross_entropy
+        # taking mean() of custom loss func -> to use loss.backward() expects scalar outcome
+        # summing over MSE and Cross entropy (has negative in it)
+        return (value_error - cross_entropy).mean()
 
 # creating PyTorch ready dataset for (s, p, v)
 class CustomDataset(Dataset):

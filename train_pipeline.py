@@ -102,10 +102,13 @@ def train_alphazero(num_iters=10, num_episodes=2):
         updated_net, losses = trainer.train(epochs=10)
 
         print(f"Losses for iteration {i}:\n{losses}")
+        print(f"Avg loss for iteration {i}:{losses.mean()}")
 
         """pitting here or continuous update? -> should be after every game?"""
         net = updated_net
         save_checkpoint(net, i)
+
+        print(f"Finished training for iteration {i}")
 
 def main():
     # 10 iterations
