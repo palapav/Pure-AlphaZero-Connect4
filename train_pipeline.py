@@ -20,22 +20,22 @@ class Trainer():
                 # all tensors (actual)
                 board_states = training_data[0]
                 labels = training_data[1]
-                print(f"labeled output:\n{labels}")
+                # print(f"labeled output:\n{labels}")
                 pi_policy = labels[:,:-1]
-                print(f"pi policy:\n{pi_policy}")
+                # print(f"pi policy:\n{pi_policy}")
                 z_value = labels[:,-1]
-                print(f"z_value:\n{z_value}")
+                # print(f"z_value:\n{z_value}")
 
                 # zero the gradient in the optimizer
                 self.optim.zero_grad()
 
-                print(f"Board states dimensions: {board_states.size()}")
-                print(f"num of z values: {len(z_value)}")
+                # print(f"Board states dimensions: {board_states.size()}")
+                # print(f"num of z values: {len(z_value)}")
 
                 # get the output of the network (predicted)
                 p_vector, value_est = self.net(board_states)
-                print(f"initial p_vector in training:\n{p_vector}")
-                print(f"initial value_est in training:\n{value_est}")
+                # print(f"initial p_vector in training:\n{p_vector}")
+                # print(f"initial value_est in training:\n{value_est}")
 
                 if len(z_value) != len(value_est): raise ValueError("predicted and actual value have discrepancy")
                 # give us a collection of p vectors and value estimates
@@ -109,7 +109,8 @@ def train_alphazero(num_iters=10, num_episodes=2):
         net = updated_net
         save_checkpoint(net, i)
 
-        print(f"Finished training for iteration {i}")
+        print(f"Finished training for iteration {i}")]
+        break
 
 def main():
     # 10 iterations
