@@ -60,7 +60,7 @@ class Trainer():
 
 
 
-def train_alphazero(num_iters=10, num_episodes=2):
+def train_alphazero(num_iters=10, num_episodes=5):
     """
     10 iterations, 10 self play games per iteration, 500 MCTS simulations per turn in a self play game
     once self play game is done -> game dataset is created
@@ -102,15 +102,14 @@ def train_alphazero(num_iters=10, num_episodes=2):
         print(f"About to Train on Iteration {i}--")
         updated_net, losses = trainer.train(epochs=10)
 
-        print(f"Losses for epochs in iteration {i}: {losses}")
+        # print(f"Losses for epochs in iteration {i}: {losses}")
         print(f"Avg loss for iteration {i}:{sum(losses) / len(losses)}")
 
         """pitting here or continuous update? -> should be after every game?"""
         net = updated_net
         save_checkpoint(net, i)
 
-        print(f"Finished training for iteration {i}")]
-        break
+        print(f"Finished training for iteration {i}")
 
 def main():
     # 10 iterations
