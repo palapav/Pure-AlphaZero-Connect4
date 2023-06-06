@@ -247,7 +247,7 @@ class MCTS():
         """ reform pi policy vector to include all zeroed illegal moves """
         """check here whether zeroes are being misrrepresented"""
         root_pi_policy = MCTS.set_illegal_moves(pi_policy_vector, chosen_actions)
-
+        # print(f"trainingpolicy: {root_pi_policy}")
         training_dataset.append([root_game_board, root_pi_policy, None])
         return np.argmax(root_pi_policy)
     

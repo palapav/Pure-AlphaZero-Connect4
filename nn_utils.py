@@ -61,11 +61,11 @@ def prepare_training_data(games_dataset):
     return train_loader
 
 def save_checkpoint(net, iter_num):
-    print(f"Type of net in save checkpoint: {type(net)}")
+    # print(f"Type of net in save checkpoint: {type(net)}")
     # current_datetime = datetime.datetime.now()
     # current_datetime_str = current_datetime.strftime("%m-%d-%Y %I:%M:%S %p")
     # need to save to particular file
-    checkpoint_path = f"checkpoint-iterq{iter_num}"
+    checkpoint_path = f"checkpoint-iterz{iter_num}"
     """typo bug: net.state.dict() -> net.state_dict()"""
     torch.save(net.state_dict(), checkpoint_path)
 

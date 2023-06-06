@@ -19,12 +19,20 @@ def alphazero_agent(observation, configuration):
     # sampling legal vs illegal actions -> still need to do this
     alphazero_net = NeuralNetwork.AlphaZeroNet()
     # checkpoint number
-    alphazero_net = load_checkpoint(alphazero_net, 5)
+    alphazero_net = load_checkpoint(alphazero_net, 4)
     board_state = torch.FloatTensor(observation.board)
     policy_estimate = alphazero_net.forward(board_state)
+    print("prediction done")
     return torch.argmax(policy_estimate)
 
 def eval_single_game():
+    # 6 rows and 7 columns in standard connect 4
+
+    # using all of the default parameters
+    env = make("connectx", debug='true')
+
+    env.run([alphazero_agent, "negamax"])
+    env.render(mode="ipython")
     
 
 
@@ -59,7 +67,8 @@ def evaluate_agent():
 
 def main():
     # 10 iterations
-    evaluate_agent()
+    #evaluate_agent()
+    eval_single_game()
 
 if __name__ == '__main__':
     main()

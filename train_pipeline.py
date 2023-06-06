@@ -77,12 +77,15 @@ def train_alphazero(num_iters=10, num_episodes=10):
     """no pitting models? -> just continuous training after every game of self play for now"""
     """training per iteration and not per game -> not enough data """
 
-    learning_rate = 0.1
+    # playing around with the learning rate
+    learning_rate = 0.001
     net = NeuralNetwork.AlphaZeroNet()
     opt = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
     loss_function = AlphaLoss()
 
     training_examples = []
+    # includes epoch losses
+    training_losses = []
 
     for i in range(num_iters):
         # all the training examples accumulated for one iteration of alphazero training
