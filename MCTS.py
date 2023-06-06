@@ -63,7 +63,7 @@ class MCTS():
     def set_illegal_moves(pi_policy_vector, actions):
         if len(pi_policy_vector) != len(actions):
             raise ValueError("Number of child priors do not equal number of available actions")
-        
+
         root_pi_policy = np.zeros(7)
         root_pi_policy[actions] = pi_policy_vector
 
@@ -71,7 +71,7 @@ class MCTS():
 
     @staticmethod
     def calculate_ucb_score(curr_node_wins, curr_node_visits, curr_node_prob, parent_node_visits):
-                # ucb score is never stored
+        # ucb score is never stored
         if curr_node_visits == 0: return float('+inf')
         # exploration parameter
         C = math.sqrt(2)
@@ -80,8 +80,8 @@ class MCTS():
         # now accounting for prior (Bayes rule)
         exploration_term = C * curr_node_prob * math.sqrt(math.log(parent_node_visits) / curr_node_visits)
         return exploitation_term + exploration_term
-    
-    # store ucb scores ?
+
+    # store ucb scores?
     @staticmethod
     def select_highest_UCB(children_nodes):
         # no numpy here?

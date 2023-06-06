@@ -70,7 +70,7 @@ def save_checkpoint(net, iter_num):
     torch.save(net.state_dict(), checkpoint_path)
 
 def load_checkpoint(net, iter_num):
-    checkpoint_path = f"checkpoint-iterz{iter_num}"
+    checkpoint_path = f"checkpoint-iterq{iter_num}"
     net.load_state_dict(torch.load(checkpoint_path))
     return net
 

@@ -99,7 +99,7 @@ class Game():
             # initial move for player 1
             next_best_move = MCTS().search(
                 # changed from 500 -> 150 simulations
-                                    alphazero_net, 150,
+                                    alphazero_net, 350,
                                     root_player_mark,
                                     self.board,
                                     game_dataset
@@ -110,15 +110,37 @@ class Game():
             is_finished, score = self.score_game(next_best_move, played_mark)
             root_player_mark = played_mark
 
-        
-        if root_player_mark != self.player_one_mark and score == 1:
+        # if the current player eventually wins (1 or 2) -> send score 1 (opposing examples -> should get -1)
+        # if the current player eventually wins (1 or 2) -> send score -1 (opposing examples -> should get 1)
+        # if the current player ties -> send score 0
+        # need to seriously refactor this later, separate method also
+        if score == 0:
+            """tied between player one and two"""
+            for index, training_example in enumerate(game_dataset): training_example[2] = 0
+        elif root_player_mark != self.player_one_mark and score == 1:
+            """player 2 wins, player one places first move on board"""
             """convert/optimize to numpy later"""
             """ update z value for all of training data when player 2 wins; set -1 score"""
-            for index, training_example in enumerate(game_dataset): training_example[2] = -1
-        else:
+            """odds evens"""
+            for index, training_example in enumerate(game_dataset):
+                # player one boards
+                if index % 2 == 0: training_example[2] = -1
+                # player two boards
+                else: training_example[2] = 1
+        elif root_player_mark == self.player_one_mark and score == 1:
             """convert/optimize to numpy later """
             """update z value for all of training data when player 1 wins/ties or player 2 ties (can use score directly)"""
-            for index, training_example in enumerate(game_dataset): training_example[2] = score
+            """player one wins, player one makes first move on board"""
+            for index, training_example in enumerate(game_dataset):
+                # player one boards (eventual wins for player 1)
+                if index % 2 == 0: training_example[2] = 1
+                # player 2 boards (eventual losses for player 2)
+                else: training_example[2] = -1
+        else:
+            raise ValueError("I shouldn't be in this state of assigning game rewards")
+
+        
+
 
         # print(f"finished game:\n{np.reshape(self.board, (6, 7))}")
         # print(f"winning player:\n{played_mark}")

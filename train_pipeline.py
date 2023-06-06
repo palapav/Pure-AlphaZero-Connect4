@@ -60,7 +60,7 @@ class Trainer():
 
 
 
-def train_alphazero(num_iters=10, num_episodes=5):
+def train_alphazero(num_iters=10, num_episodes=10):
     """
     10 iterations, 10 self play games per iteration, 500 MCTS simulations per turn in a self play game
     once self play game is done -> game dataset is created
