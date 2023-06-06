@@ -32,9 +32,15 @@ def eval_single_game():
     env = make("connectx", debug='true')
 
     env.run([alphazero_agent, "negamax"])
+    # fix ipython mode
     env.render(mode="ipython")
-    
 
+# separately keep track of value loss
+# and policy loss
+# Adam optimizer
+
+# look into the board states
+# diagonal
 
 def evaluate_agent():
     env = make("connectx", debug='true')

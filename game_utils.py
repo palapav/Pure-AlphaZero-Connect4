@@ -109,11 +109,15 @@ class Game():
             # print(f"board after move:\n{np.reshape(self.board, (6,7))}")
             is_finished, score = self.score_game(next_best_move, played_mark)
             root_player_mark = played_mark
+        # simulation aspect 
+        # interactive games (test games) -> 3 in a row
+        # value estimates -> add the value score/ z score to their training data
 
         # if the current player eventually wins (1 or 2) -> send score 1 (opposing examples -> should get -1)
         # if the current player eventually wins (1 or 2) -> send score -1 (opposing examples -> should get 1)
         # if the current player ties -> send score 0
         # need to seriously refactor this later, separate method also
+        
         if score == 0:
             """tied between player one and two"""
             for index, training_example in enumerate(game_dataset): training_example[2] = 0
