@@ -195,18 +195,30 @@ class MCTS():
         """z value can represent value_est or terminal_score """
         """refactor code for variables to better represent terminal z vs network value_est"""
         """terminal leaf node -> one more move left """
+
+        # we can set z scores for nodes during backpropagation
+        # let's say we hit a terminal state in simulations -> that's backpropagated
+        # to the root children
         curr_node = leaf_node
         
         while curr_node != None:
             curr_node.visits = curr_node.visits + 1
 
             if curr_node.player_mark == 1:
-                if leaf_node.player_mark == 1: curr_node.wins += leaf_node.z_value
-                else: curr_node.wins += (-1 * leaf_node.z_value)
+                if leaf_node.player_mark == 1:
+                    curr_node.z_value = leaf_node.z_value
+                    curr_node.wins += leaf_node.z_value
+                else:
+                    curr_node.z_value = -1 * leaf_node.z_value
+                    curr_node.wins += (-1 * leaf_node.z_value)
             # player mark = 2
             else:
-                if leaf_node.player_mark == 1: curr_node.wins += (-1 * leaf_node.z_value)
-                else: curr_node.wins += leaf_node.z_value
+                if leaf_node.player_mark == 1:
+                    curr_node.z_value = -1 * leaf_node.z_value
+                    curr_node.wins += (-1 * leaf_node.z_value)
+                else:
+                    curr_node.z_value = leaf_node.z_value
+                    curr_node.wins += leaf_node.z_value
 
             curr_node = curr_node.parent
 
@@ -229,7 +241,8 @@ class MCTS():
             # selection
             leaf_node = self.select(root_node)
 
-            # if leaf node is terminal -> skip expansion -> backprop actual z_value, continue
+            # if leaf node is terminal -> skip expansion -> backprop actual z_value, continue ->
+            # terminal simulation -> update value_ests as such 
             # difference between non terminal and terminal leaf nodes
             if leaf_node.is_terminal:
                 # this simulated game in MCTS tree has ended -> backprop true score for more
@@ -242,12 +255,17 @@ class MCTS():
             # backprop -> value estimate
             self.backpropagate(leaf_node)
 
+        """bug check: check whether the policy values and chosen actions
+        are lining up in the correct order"""
+
         # stochastic pi policy
         pi_policy_vector, chosen_actions = MCTS.create_pi_policy(root_node.children)
         """ reform pi policy vector to include all zeroed illegal moves """
         """check here whether zeroes are being misrrepresented"""
         root_pi_policy = MCTS.set_illegal_moves(pi_policy_vector, chosen_actions)
         # print(f"trainingpolicy: {root_pi_policy}")
+
+        """ need to extract z value of best root node child  """
         training_dataset.append([root_game_board, root_pi_policy, None])
         return np.argmax(root_pi_policy)
     

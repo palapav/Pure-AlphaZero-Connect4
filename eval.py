@@ -8,6 +8,8 @@ from kaggle_environments import evaluate, make
 import torch
 import NeuralNetwork
 
+# have self play -> interactions with one self in eval -> no computer generation
+
 """load latest trained alphazero model here """
 
 def alphazero_agent(observation, configuration):
