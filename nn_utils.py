@@ -22,8 +22,10 @@ class AlphaLoss(torch.nn.Module):
         p_vector_transpose = p_vector.t()
         # casting to double -> see if there is a better way
         cross_entropy = torch.mm(pi_vector.double(), torch.log(p_vector_transpose).double())
-        # performing entire matrix mult -> and slicing first -> see if there is a better way
-        cross_entropy = cross_entropy[:,0]
+        # performing entire matrix mult -> and slicing diagonal
+        # along dim=0
+        # test to see if we are going along the diagonal
+        cross_entropy = torch.diagonal(cross_entropy, 0)
 
         """no regularization yet (go back and include) -> involves C param, model weights (norm)"""
 
