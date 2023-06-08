@@ -56,8 +56,11 @@ class MCTS():
         total_children_visits = np.sum(children_visits)
         root_pi_policy = children_visits / total_children_visits
 
-        actions_taken = np.array([child_node.action_taken for child_node in root_children_nodes])
-        return root_pi_policy, actions_taken
+        # root node children z scores
+        child_z_scores = np.array([child_node.z_value for child_node in root_children_nodes])
+
+        child_actions_taken = np.array([child_node.action_taken for child_node in root_children_nodes])
+        return root_pi_policy, child_actions_taken, child_z_scores
     
     @staticmethod
     def set_illegal_moves(pi_policy_vector, actions):
@@ -237,6 +240,7 @@ class MCTS():
         # zero sum property
         root_node = self.Node(root_game_board, player_mark, None, child_priors, value_est)
         # reduce to 100 simulations, mcts visualizer, hyperparameter tuning (tree depth vs width)
+        # backpropagation -> always occurs whether we are in a terminal state or not
         for i in range(num_simulations):
             # selection
             leaf_node = self.select(root_node)
@@ -259,14 +263,23 @@ class MCTS():
         are lining up in the correct order"""
 
         # stochastic pi policy
-        pi_policy_vector, chosen_actions = MCTS.create_pi_policy(root_node.children)
+        # z scores here are referring to the value estimates or terminal scores after policy refinement for a particular turn
+        pi_policy_vector, chosen_actions, z_scores = MCTS.create_pi_policy(root_node.children)
+        
+        """ need to extract z value of best root node child  """
+        # no index alignment -> first root child node does not yet correspond to column 1 action
+        # optimal z score corresponds to best root_child_node to take
+        # refactor into separate function later
+        if len(pi_policy_vector) != len(z_scores): raise ValueError("Incorrect root children z scores extraction")
+        optimal_z_score = z_scores[np.argmax(pi_policy_vector)]
+
         """ reform pi policy vector to include all zeroed illegal moves """
         """check here whether zeroes are being misrrepresented"""
+        # need to do this because neural network is expecting a 7 element array
         root_pi_policy = MCTS.set_illegal_moves(pi_policy_vector, chosen_actions)
-        # print(f"trainingpolicy: {root_pi_policy}")
-
-        """ need to extract z value of best root node child  """
-        training_dataset.append([root_game_board, root_pi_policy, None])
+        
+        
+        training_dataset.append([root_game_board, root_pi_policy, optimal_z_score])
         return np.argmax(root_pi_policy)
     
 #--------- MCTS search sanity check --------------
