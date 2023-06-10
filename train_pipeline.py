@@ -9,7 +9,7 @@ class Trainer():
         self.optim = optim
         self.loss_function = loss_function
         self.train_loader = train_loader
-    
+
     def train(self, epochs):
         losses = []
         for epoch in range(epochs):
@@ -51,16 +51,16 @@ class Trainer():
 
                 epoch_loss += loss.item()
                 epoch_steps += 1
-            
+
             # average loss of epoch
             losses.append(epoch_loss / epoch_steps)
-            # print("epoch [%d]: loss %.3f" % (epoch+1, losses[-1]))
-        
+            print("epoch [%d]: loss %.3f" % (epoch+1, losses[-1]))
+
         return self.net, losses
 
 
 
-def train_alphazero(num_iters=10, num_episodes=10):
+def train_alphazero(num_iters=10, num_episodes=5):
     """
     10 iterations, 10 self play games per iteration, 500 MCTS simulations per turn in a self play game
     once self play game is done -> game dataset is created
@@ -78,9 +78,9 @@ def train_alphazero(num_iters=10, num_episodes=10):
     """training per iteration and not per game -> not enough data """
 
     # playing around with the learning rate
-    learning_rate = 0.001
+    learning_rate = 0.1
     net = NeuralNetwork.AlphaZeroNet()
-    opt = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
+    # we are using the same optimizer every single time -> that's just using the initial parameters
     loss_function = AlphaLoss()
 
     training_examples = []
@@ -101,16 +101,32 @@ def train_alphazero(num_iters=10, num_episodes=10):
         print(f"Preparing Training Data for Iteration {i}")
         train_loader = prepare_training_data(training_examples)
         # drop the last batch
+
+        opt = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
+        # retraining model every time we get a new batch of training data
         trainer = Trainer(net=net, optim=opt, loss_function=loss_function, train_loader=train_loader)
         print(f"About to Train on Iteration {i}--")
+        # removed updated net
         updated_net, losses = trainer.train(epochs=10)
 
         # print(f"Losses for epochs in iteration {i}: {losses}")
         print(f"Avg loss for iteration {i}:{sum(losses) / len(losses)}")
 
         """pitting here or continuous update? -> should be after every game?"""
-        net = updated_net
+
+        # print(f"model state:\n{net.state_dict()}")
+
+        old_net = set(net.state_dict())
+        # print(f"old net:\n{old_net}")
+        new_net = set(updated_net.state_dict())
+        # print(f"new net:\n{new_net}")
+        # both are having the same parameters
+        if new_net == old_net: raise ValueError("parameters are not updating")
+
+        # net = updated_net
         save_checkpoint(net, i)
+
+        net = updated_net
 
         print(f"Finished training for iteration {i}")
 

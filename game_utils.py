@@ -99,7 +99,7 @@ class Game():
             # initial move for player 1
             next_best_move = MCTS().search(
             # changed from 500 -> 150 simulations
-                                    alphazero_net, 350,
+                                    alphazero_net, 200,
                                     root_player_mark,
                                     self.board,
                                     game_dataset

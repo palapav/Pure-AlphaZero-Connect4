@@ -10,7 +10,7 @@ from torch.utils.data import Dataset, DataLoader
 class AlphaLoss(torch.nn.Module):
     def __init__(self):
         super(AlphaLoss, self).__init__()
-    
+
     # pi_vector and z_value given from training data
     # value est and p vector given from raw NN
     # inputs are all tensors
