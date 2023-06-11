@@ -1,6 +1,6 @@
 import NeuralNetwork
 from game_utils import Game
-from nn_utils import AlphaLoss, prepare_training_data, save_checkpoint
+from nn_utils import AlphaLoss, prepare_training_data, save_checkpoint, load_checkpoint
 import torch.optim as optim
 
 class Trainer():
@@ -15,12 +15,13 @@ class Trainer():
         for epoch in range(epochs):
             epoch_loss = 0.0
             epoch_steps = 0
-
+            # network is not actually updating after every epoch 
             for training_data in self.train_loader:
                 # all tensors (actual)
                 board_states = training_data[0]
+                # print the reshaped boards
                 labels = training_data[1]
-                # print(f"labeled output:\n{labels}")
+                print(f"labeled output:\n{labels}")
                 pi_policy = labels[:,:-1]
                 # print(f"pi policy:\n{pi_policy}")
                 z_value = labels[:,-1]
@@ -90,6 +91,7 @@ def train_alphazero(num_iters=10, num_episodes=5):
     for i in range(num_iters):
         # all the training examples accumulated for one iteration of alphazero training
         # 10 episodes/self play games per iteration
+        old_net = net
         for e in range(num_episodes):
             single_game_dataset = Game().self_play(net)
             print(f"Game {e} finished for iteration {i}")
@@ -97,11 +99,9 @@ def train_alphazero(num_iters=10, num_episodes=5):
             # fixed size replay buffer (make it 100000) (if it ever gets filled up -> drop older policy examples)
             training_examples += single_game_dataset
             # save every 20 or 50 (s, p, v)
-
+        print(f"Number of training examples so far: {len(training_examples)}")
         print(f"Preparing Training Data for Iteration {i}")
         train_loader = prepare_training_data(training_examples)
-        # drop the last batch
-
         opt = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
         # retraining model every time we get a new batch of training data
         trainer = Trainer(net=net, optim=opt, loss_function=loss_function, train_loader=train_loader)
@@ -116,15 +116,16 @@ def train_alphazero(num_iters=10, num_episodes=5):
 
         # print(f"model state:\n{net.state_dict()}")
 
-        old_net = set(net.state_dict())
+        old_net = set(old_net.state_dict())
         # print(f"old net:\n{old_net}")
-        new_net = set(updated_net.state_dict())
+        # new = load_checkpoint(net, 0)
+        new_net = set(net.state_dict())
         # print(f"new net:\n{new_net}")
         # both are having the same parameters
         if new_net == old_net: raise ValueError("parameters are not updating")
 
-        # net = updated_net
-        save_checkpoint(net, i)
+        net = updated_net
+        # save_checkpoint(net, i)
 
         net = updated_net
 
