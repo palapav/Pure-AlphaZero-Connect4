@@ -99,7 +99,7 @@ class Game():
             # initial move for player 1
             next_best_move = MCTS().search(
             # changed from 500 -> 150 simulations
-                                    alphazero_net, 200,
+                                    alphazero_net, 500,
                                     root_player_mark,
                                     self.board,
                                     game_dataset
@@ -109,6 +109,18 @@ class Game():
             # print(f"board after move:\n{np.reshape(self.board, (6,7))}")
             is_finished, score = self.score_game(next_best_move, played_mark)
             root_player_mark = played_mark
+        
+        # game is finished
+        # only need to add change score for player one loss
+        # handles
+        if root_player_mark != 
+
+
+
+
+
+        
+
         # simulation aspect 
         # interactive games (test games) -> 3 in a row
         # value estimates -> add the value score/ z score to their training data

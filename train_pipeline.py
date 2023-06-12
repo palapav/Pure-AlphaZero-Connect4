@@ -2,6 +2,8 @@ import NeuralNetwork
 from game_utils import Game
 from nn_utils import AlphaLoss, prepare_training_data, save_checkpoint, load_checkpoint
 import torch.optim as optim
+import torch
+import sys
 
 class Trainer():
     def __init__(self, net=None, optim=None, loss_function=None, train_loader=None):
@@ -18,37 +20,59 @@ class Trainer():
             # network is not actually updating after every epoch 
             for training_data in self.train_loader:
                 # all tensors (actual)
+                # print(f"Is grad none @ beginning:{list(self.net.parameters())[0].grad}")
                 board_states = training_data[0]
+                # print(f"Type for board states set:n{type(board_states)}")
+                # print(f"Type of board states single: {type(board_states[0])}")
+
                 # print the reshaped boards
                 labels = training_data[1]
-                print(f"labeled output:\n{labels}")
                 pi_policy = labels[:,:-1]
                 # print(f"pi policy:\n{pi_policy}")
+                # print(f"Type for policy vect: {type(pi_policy)}")
                 z_value = labels[:,-1]
+                # print(f"z values from training: {z_value}")
+                # print(f"Type of z value: {type(z_value)}")
                 # print(f"z_value:\n{z_value}")
 
                 # zero the gradient in the optimizer
+                # print(f"Is grad none before zero grad:{list(self.net.parameters())[0].grad}")
                 self.optim.zero_grad()
+
+                # print(f"Is grad none after zero grad:{list(self.net.parameters())[0].grad}")
 
                 # print(f"Board states dimensions: {board_states.size()}")
                 # print(f"num of z values: {len(z_value)}")
 
                 # get the output of the network (predicted)
                 p_vector, value_est = self.net(board_states)
-                # print(f"initial p_vector in training:\n{p_vector}")
-                # print(f"initial value_est in training:\n{value_est}")
+                # print(f"initial p_vector in training:\n{type(p_vector)}")
+                # print(f"initial value_est in training:\n{type(value_est)}")
 
                 if len(z_value) != len(value_est): raise ValueError("predicted and actual value have discrepancy")
                 # give us a collection of p vectors and value estimates
 
                 # computing loss using loss function
+                # print(f"Is grad none before loss:{list(self.net.parameters())[0].grad}")
                 loss = self.loss_function(z_value, value_est, p_vector, pi_policy)
+                # print(f"Loss type: {type(loss)}")
+                
+                # grad is none right after computing loss (not calling backward yet)
+                # print(f"Is grad none:{list(self.net.parameters())[0].grad}")
+                # sys.exit(1)
+
+                a = list(self.net.parameters())[0].clone()
 
                 # backpropagate to compute gradients of parameters
                 loss.backward()
+                # print(f"Is grad none after calling backward:{list(self.net.parameters())[0].grad}")
+
+                b = list(self.net.parameters())[0].clone()
 
                 # call the optimizer, update model parameters
                 self.optim.step()
+
+                print(f"Did params update: {not torch.equal(a.data, b.data)}")
 
                 epoch_loss += loss.item()
                 epoch_steps += 1
@@ -83,7 +107,6 @@ def train_alphazero(num_iters=10, num_episodes=5):
     net = NeuralNetwork.AlphaZeroNet()
     # we are using the same optimizer every single time -> that's just using the initial parameters
     loss_function = AlphaLoss()
-
     training_examples = []
     # includes epoch losses
     training_losses = []

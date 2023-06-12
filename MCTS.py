@@ -272,6 +272,7 @@ class MCTS():
         # refactor into separate function later
         if len(pi_policy_vector) != len(z_scores): raise ValueError("Incorrect root children z scores extraction")
         optimal_z_score = z_scores[np.argmax(pi_policy_vector)]
+        print(f"optimal z score:{optimal_z_score}")
 
         """ reform pi policy vector to include all zeroed illegal moves """
         """check here whether zeroes are being misrrepresented"""

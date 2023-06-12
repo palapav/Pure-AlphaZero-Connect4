@@ -21,6 +21,7 @@ class AlphaLoss(torch.nn.Module):
         # cross entropy loss for policy
         p_vector_transpose = p_vector.t()
         # casting to double -> see if there is a better way
+        print(f"type og pi vector double:{type(pi_vector.double())}")
         cross_entropy = torch.mm(pi_vector.double(), torch.log(p_vector_transpose).double())
         # performing entire matrix mult -> and slicing diagonal
         # along dim=0

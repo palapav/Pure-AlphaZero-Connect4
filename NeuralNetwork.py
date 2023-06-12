@@ -23,6 +23,11 @@ class AlphaZeroNet(nn.Module):
         out = self.relu(out)
         out = self.fc2(out)
         out = self.relu(out)
+        # # 2 more hidden layers
+        # out = self.fc3(out)
+        # out = self.relu(out)
+        # out = self.fc4(out)
+        # out = self.relu(out)
         out = self.output(out)
 
         # splitting up output layer -> softmax first 7 classes (p vector)
@@ -33,10 +38,12 @@ class AlphaZeroNet(nn.Module):
 
         # need to seriously fix this
         # if statement -> 2D tensor (7 x 1, 1x1)
+        # mcts
         if out.ndim == 1:
             prob_vector = self.softmax(out[0:7])
             # tanh to this
             value_est= self.tanh(out[7])
+        # training data (batches)
         elif out.ndim == 2:
             # could use -1
             prob_vector = self.softmax(out[:,0:7])
