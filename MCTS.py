@@ -184,6 +184,7 @@ class MCTS():
             is_finished, reward = mcts_utils.score_game(new_child_board, available_moves[i], new_child_mark)
             # refactor to avoid to smaller objects to avoid Node constructor too many parameters
             # Node class owned by MCTS object
+            # print(f"My mcts reward:{reward}")
             new_child_node = self.Node(
                                 new_child_board, new_child_mark, leaf_node,
                                 child_priors, value_est, is_finished, reward, 
@@ -207,21 +208,12 @@ class MCTS():
         while curr_node != None:
             curr_node.visits = curr_node.visits + 1
 
-            if curr_node.player_mark == 1:
-                if leaf_node.player_mark == 1:
-                    curr_node.z_value = leaf_node.z_value
-                    curr_node.wins += leaf_node.z_value
-                else:
-                    curr_node.z_value = -1 * leaf_node.z_value
-                    curr_node.wins += (-1 * leaf_node.z_value)
-            # player mark = 2
+            if curr_node.player_mark == leaf_node.player_mark:
+                curr_node.z_value = leaf_node.z_value
+                curr_node.wins += leaf_node.z_value
             else:
-                if leaf_node.player_mark == 1:
-                    curr_node.z_value = -1 * leaf_node.z_value
-                    curr_node.wins += (-1 * leaf_node.z_value)
-                else:
-                    curr_node.z_value = leaf_node.z_value
-                    curr_node.wins += leaf_node.z_value
+                curr_node.z_value = -1 * leaf_node.z_value
+                curr_node.wins += (-1 * leaf_node.z_value)
 
             curr_node = curr_node.parent
 
@@ -272,7 +264,7 @@ class MCTS():
         # refactor into separate function later
         if len(pi_policy_vector) != len(z_scores): raise ValueError("Incorrect root children z scores extraction")
         optimal_z_score = z_scores[np.argmax(pi_policy_vector)]
-        print(f"optimal z score:{optimal_z_score}")
+        # print(f"optimal z score:{optimal_z_score}")
 
         """ reform pi policy vector to include all zeroed illegal moves """
         """check here whether zeroes are being misrrepresented"""
@@ -298,7 +290,8 @@ def main():
     # next player turn -> 1, so we pass in player 2
     mcts = MCTS()
     root_player_mark = 2
-    player_one_move = mcts.search(alphazero_nn, 500, root_player_mark, mcts_test_board)
+    training_dataset = []
+    player_one_move = mcts.search(alphazero_nn, 500, root_player_mark, mcts_test_board, training_dataset)
     # should be between columns 0 to 6
     print(f"Player one next best move untrained: {player_one_move}")
 

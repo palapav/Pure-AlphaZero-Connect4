@@ -38,6 +38,7 @@ class Game():
         self.board[column + (row * COLUMNS)] = player_mark
 
     def is_win(self, column, player_mark):
+
         inarow = 3
         row =  min([r for r in range(ROWS) if self.board[column + (r * COLUMNS)] == player_mark])
         
@@ -109,17 +110,27 @@ class Game():
             # print(f"board after move:\n{np.reshape(self.board, (6,7))}")
             is_finished, score = self.score_game(next_best_move, played_mark)
             root_player_mark = played_mark
-        
+
         # game is finished
-        # only need to add change score for player one loss
-        # handles
-        if root_player_mark != 
+        # only need to add change score for player one loss terminal score
+        # later -> change the last 2 terminal states (one for each player)
+        if score == 0:
+            game_dataset[-1][-1] = 0
+            # previous player's board
+            game_dataset[-2][-1] = 0
+        else:
+            # player 1/2 places winning move
+            game_dataset[-1][-1] = 1
+            # opposing player played move that resulted in winner's move on next turn
+            game_dataset[-2][-1] = -1
 
+        """
+        player one owns board (about to make a terminal move) -> receives a terminal score
+        -> pi policy -> terminal moves distribution to make, terminal score to come from picking move
+        -> can win, lose, or tie on own board
 
-
-
-
-        
+        given root_player_mark & score
+        """
 
         # simulation aspect 
         # interactive games (test games) -> 3 in a row
@@ -169,7 +180,13 @@ def main():
     connect4_game = Game()
     alphazero_net = NeuralNetwork.AlphaZeroNet()
     self_play_data = connect4_game.self_play(alphazero_net)
-    print(f"One game of self play training data:\n{self_play_data}")
+    # print(f"One game of self play training data:\n{self_play_data}")
+
+    second_last_ex = self_play_data[-2]
+    print(f"Second to last training example:\n{second_last_ex}")
+    last_ex = self_play_data[-1]
+    print(f"Last training example:\n{last_ex}")
+
 
 if __name__ == '__main__':
     main()
