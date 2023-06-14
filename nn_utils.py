@@ -14,6 +14,8 @@ class AlphaLoss(torch.nn.Module):
     # pi_vector and z_value given from training data
     # value est and p vector given from raw NN
     # inputs are all tensors
+
+    # pass in example pi vector and p vector
     def forward(self, z_value, value_est, p_vector, pi_vector):
         # MSE for value
         mse_error = (value_est - z_value) ** 2
@@ -21,7 +23,7 @@ class AlphaLoss(torch.nn.Module):
         # cross entropy loss for policy
         p_vector_transpose = p_vector.t()
         # casting to double -> see if there is a better way
-        print(f"type og pi vector double:{type(pi_vector.double())}")
+        # print(f"type of pi vector double:{type(pi_vector.double())}")
         cross_entropy = torch.mm(pi_vector.double(), torch.log(p_vector_transpose).double())
         # performing entire matrix mult -> and slicing diagonal
         # along dim=0

@@ -54,6 +54,7 @@ class MCTS():
 
         children_visits = np.array([child_node.visits for child_node in root_children_nodes])
         total_children_visits = np.sum(children_visits)
+        # child node z value 
         root_pi_policy = children_visits / total_children_visits
 
         # root node children z scores
@@ -209,6 +210,7 @@ class MCTS():
             curr_node.visits = curr_node.visits + 1
 
             if curr_node.player_mark == leaf_node.player_mark:
+                # expectation 
                 curr_node.z_value = leaf_node.z_value
                 curr_node.wins += leaf_node.z_value
             else:
@@ -271,9 +273,22 @@ class MCTS():
         # need to do this because neural network is expecting a 7 element array
         root_pi_policy = MCTS.set_illegal_moves(pi_policy_vector, chosen_actions)
         
-        
+        # z score: root node wins / root node visits
+        # rename wins to z value -> total z value / total visits
+        # root node centric ->
+        # each node should be owned by the current player making the move
+        # player one about to make the first move -> root node -> owned by player 1
+        # action_taken -> move that would go onto the child node board
+        # sample from pi policy vector
         training_dataset.append([root_game_board, root_pi_policy, optimal_z_score])
+
+        # temperature parameter -> take all probabiltiies and raise to one over temperature power
+        # if temperature is very high -> policy very explorative
+        # probability distribution -> np.random.choice
+        # refactor for loops
         return np.argmax(root_pi_policy)
+    
+    # instead of np.argmax root pi policy -> just sample from here
     
 #--------- MCTS search sanity check --------------
 def main():
@@ -294,6 +309,9 @@ def main():
     player_one_move = mcts.search(alphazero_nn, 500, root_player_mark, mcts_test_board, training_dataset)
     # should be between columns 0 to 6
     print(f"Player one next best move untrained: {player_one_move}")
+
+
+    # verifying tree search work -> 3 in a row -> 4 in a row bug 
 
 if __name__ == '__main__':
     main()
