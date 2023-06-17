@@ -7,11 +7,11 @@ Jun 15th update:
 Read AlphaZero paper -> all detailed
 
 * All changes going forward needs to be done in a branch
-and merged into main
+and merged into main (currently doing this)
 
 * Changes to be made
 
-* Refactor NN so that training data and MCTS only take 2D tensors
+* Refactor NN so that training data and MCTS only take 2D tensors (done)
 
 * refactor root node -> to be owned by player one
     * wins are backpropagated to root node -> check with pure MCTS
