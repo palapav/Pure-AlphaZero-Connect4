@@ -56,10 +56,8 @@ class Trainer():
                 # print(f"Is grad none before loss:{list(self.net.parameters())[0].grad}")
                 loss = self.loss_function(z_value, value_est, p_vector, pi_policy)
                 # print(f"Loss type: {type(loss)}")
-                
-                # grad is none right after computing loss (not calling backward yet)
+
                 # print(f"Is grad none:{list(self.net.parameters())[0].grad}")
-                # sys.exit(1)
 
                 a = list(self.net.parameters())[0].clone()
 

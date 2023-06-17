@@ -3,8 +3,7 @@ This module defines helper functions
 for playing the Connect4 game
 
 we will include a self-play function during training
-and also a pitting function to play the current
-neural network against the old one
+pitting -> eval module
 
 This could be defined as a class
 
@@ -87,11 +86,6 @@ class Game():
     # each MCTS simulation will return a move placed on the Game board
     # train the model after every game of self play
     def self_play(self, alphazero_net):
-        """plays one game between player 1 and player 2"""
-        """we will do dataset up here for losses """
-        """we will play the alphazero net as player 1"""
-        """the first move on the board will be by player 1 -> player 2 passed in as root node initially"""
-        # store s, p, v values
         game_dataset = []
         is_finished = False
         score = None
@@ -123,51 +117,6 @@ class Game():
             game_dataset[-1][-1] = 1
             # opposing player played move that resulted in winner's move on next turn
             game_dataset[-2][-1] = -1
-
-        """
-        player one owns board (about to make a terminal move) -> receives a terminal score
-        -> pi policy -> terminal moves distribution to make, terminal score to come from picking move
-        -> can win, lose, or tie on own board
-
-        given root_player_mark & score
-        """
-
-        # simulation aspect 
-        # interactive games (test games) -> 3 in a row
-        # value estimates -> add the value score/ z score to their training data
-
-        # if the current player eventually wins (1 or 2) -> send score 1 (opposing examples -> should get -1)
-        # if the current player eventually wins (1 or 2) -> send score -1 (opposing examples -> should get 1)
-        # if the current player ties -> send score 0
-        # need to seriously refactor this later, separate method also
-        
-        # if score == 0:
-        #     """tied between player one and two"""
-        #     for index, training_example in enumerate(game_dataset): training_example[2] = 0
-        # elif root_player_mark != self.player_one_mark and score == 1:
-        #     """player 2 wins, player one places first move on board"""
-        #     """convert/optimize to numpy later"""
-        #     """ update z value for all of training data when player 2 wins; set -1 score"""
-        #     """odds evens"""
-        #     for index, training_example in enumerate(game_dataset):
-        #         # player one boards
-        #         if index % 2 == 0: training_example[2] = -1
-        #         # player two boards
-        #         else: training_example[2] = 1
-        # elif root_player_mark == self.player_one_mark and score == 1:
-        #     """convert/optimize to numpy later """
-        #     """update z value for all of training data when player 1 wins/ties or player 2 ties (can use score directly)"""
-        #     """player one wins, player one makes first move on board"""
-        #     for index, training_example in enumerate(game_dataset):
-        #         # player one boards (eventual wins for player 1)
-        #         if index % 2 == 0: training_example[2] = 1
-        #         # player 2 boards (eventual losses for player 2)
-        #         else: training_example[2] = -1
-        # else:
-        #     raise ValueError("I shouldn't be in this state of assigning game rewards")
-
-        
-
 
         # print(f"finished game:\n{np.reshape(self.board, (6, 7))}")
         # print(f"winning player:\n{played_mark}")

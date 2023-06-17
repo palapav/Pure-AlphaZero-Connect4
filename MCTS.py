@@ -12,13 +12,6 @@ import NeuralNetwork
 # we don't have a negative one score in implementation when scoring game -> but take into account when backpropping
 class MCTS():
     class Node():
-        """
-        Root node -> empty board
-        board -> the current board prior to the player playing the action
-        player_turn -> one who is playing the move on the current board
-        pi_policy -> probability over potential child actions
-        current node can take -> refined with MCTS (initally)
-        """
         def __init__(self, board, player_turn, parent, network_prob, value_est,
                      is_terminal=False, terminal_score = None, action_taken=None):
             self.board = copy.deepcopy(board)
@@ -32,12 +25,7 @@ class MCTS():
             self.action_taken = action_taken
             self.children = []
 
-            # vector of possible actions probability to take from current network
-            # curr node pi policy
-            # all zero child priors for terminal leaf nodes
-            """Need to do the above"""
             self.child_priors = network_prob # p vector
-            # updated to terminal score for terminal nodes
             self.z_value = value_est
 
             self.wins = 0
@@ -197,13 +185,6 @@ class MCTS():
 
 
     def backpropagate(self, leaf_node):
-        """z value can represent value_est or terminal_score """
-        """refactor code for variables to better represent terminal z vs network value_est"""
-        """terminal leaf node -> one more move left """
-
-        # we can set z scores for nodes during backpropagation
-        # let's say we hit a terminal state in simulations -> that's backpropagated
-        # to the root children
         curr_node = leaf_node
         
         while curr_node != None:
@@ -222,73 +203,34 @@ class MCTS():
 
     def search(self, alphazero_net, num_simulations, player_mark,
                root_game_board, training_dataset=None):
-        # create the root node here (current state of the board)
-        # game board is 42 cell 1D numpy array -> passed from self-play
-        # player_mark is the player mark just placed on the board
         child_priors, value_est = alphazero_net.forward(torch.FloatTensor(root_game_board))
         child_priors = child_priors.detach().numpy()
         value_est = value_est.item()
-        # player_mark from previous MCTS search call
-        # accurate value est for player 2?
-        # backpropagate array -> first entry vs second entry
-        # zero sum property
+
         root_node = self.Node(root_game_board, player_mark, None, child_priors, value_est)
-        # reduce to 100 simulations, mcts visualizer, hyperparameter tuning (tree depth vs width)
-        # backpropagation -> always occurs whether we are in a terminal state or not
+
         for i in range(num_simulations):
             # selection
             leaf_node = self.select(root_node)
 
-            # if leaf node is terminal -> skip expansion -> backprop actual z_value, continue ->
-            # terminal simulation -> update value_ests as such 
-            # difference between non terminal and terminal leaf nodes
             if leaf_node.is_terminal:
-                # this simulated game in MCTS tree has ended -> backprop true score for more
-                # accurate results
                 self.backpropagate(leaf_node)
                 continue
 
-            # expansion -> create new nodes
             self.expand(leaf_node, alphazero_net)
-            # backprop -> value estimate
             self.backpropagate(leaf_node)
 
-        """bug check: check whether the policy values and chosen actions
-        are lining up in the correct order"""
-
-        # stochastic pi policy
-        # z scores here are referring to the value estimates or terminal scores after policy refinement for a particular turn
         pi_policy_vector, chosen_actions, z_scores = MCTS.create_pi_policy(root_node.children)
-        
-        """ need to extract z value of best root node child  """
-        # no index alignment -> first root child node does not yet correspond to column 1 action
-        # optimal z score corresponds to best root_child_node to take
-        # refactor into separate function later
+
         if len(pi_policy_vector) != len(z_scores): raise ValueError("Incorrect root children z scores extraction")
         optimal_z_score = z_scores[np.argmax(pi_policy_vector)]
         # print(f"optimal z score:{optimal_z_score}")
 
-        """ reform pi policy vector to include all zeroed illegal moves """
-        """check here whether zeroes are being misrrepresented"""
-        # need to do this because neural network is expecting a 7 element array
         root_pi_policy = MCTS.set_illegal_moves(pi_policy_vector, chosen_actions)
-        
-        # z score: root node wins / root node visits
-        # rename wins to z value -> total z value / total visits
-        # root node centric ->
-        # each node should be owned by the current player making the move
-        # player one about to make the first move -> root node -> owned by player 1
-        # action_taken -> move that would go onto the child node board
-        # sample from pi policy vector
+
         training_dataset.append([root_game_board, root_pi_policy, optimal_z_score])
 
-        # temperature parameter -> take all probabiltiies and raise to one over temperature power
-        # if temperature is very high -> policy very explorative
-        # probability distribution -> np.random.choice
-        # refactor for loops
         return np.argmax(root_pi_policy)
-    
-    # instead of np.argmax root pi policy -> just sample from here
     
 #--------- MCTS search sanity check --------------
 def main():
@@ -309,9 +251,6 @@ def main():
     player_one_move = mcts.search(alphazero_nn, 500, root_player_mark, mcts_test_board, training_dataset)
     # should be between columns 0 to 6
     print(f"Player one next best move untrained: {player_one_move}")
-
-
-    # verifying tree search work -> 3 in a row -> 4 in a row bug 
 
 if __name__ == '__main__':
     main()
