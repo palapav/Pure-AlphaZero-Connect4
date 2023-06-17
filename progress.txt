@@ -1,0 +1,42 @@
+playing marks in one column -> we still have moves geared towards that column
+once filled -> need to check if this resolved (test)
+
+unit testing -> statement, boundary, path, stress
+
+Jun 15th update:
+Read AlphaZero paper -> all detailed
+
+* All changes going forward needs to be done in a branch
+and merged into main
+
+* Changes to be made
+
+* Refactor NN so that training data and MCTS only take 2D tensors
+
+* refactor root node -> to be owned by player one
+    * wins are backpropagated to root node -> check with pure MCTS
+
+* refactor optimal z score in backpropagation and training data -> total z score / total visits
+
+# np.random.choice for root policy vector 
+
+* stop illegal moves in eval mode
+
+* to test mcts using untrained neural network -> 3 in a row -> can we get to 4
+
+# cross entropy -> zero sum property
+
+# check whether policy and chosen actions are lining up index wise
+
+* total z value / total visits
+
+* temperature parameter -> take all probabiltiies and raise to one over temperature power
+if temperature is very high -> policy very explorative
+
+* refactor out for loops
+
+* print board states, policy states, and values
+
+* add regularization to loss function
+
+* casting to double in loss function -> see if there is a better way
