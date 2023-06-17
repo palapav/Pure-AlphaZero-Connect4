@@ -13,7 +13,7 @@ class AlphaZeroNet(nn.Module):
         # along rows dimension
         self.softmax = nn.Softmax(dim=0)
         self.tanh = nn.Tanh()
-    
+
     # x is the 42 input observation board
     def forward(self, x):
         out = self.fc1(x)
@@ -22,12 +22,8 @@ class AlphaZeroNet(nn.Module):
         out = self.relu(out)
         out = self.output(out)
 
-        if out.ndim == 1:
-            prob_vector = self.softmax(out[0:7])
-            value_est= self.tanh(out[7])
-        elif out.ndim == 2:
-            prob_vector = self.softmax(out[:,0:7])
-            value_est= self.tanh(out[:,7])
+        prob_vector = self.softmax(out[:,0:7])
+        value_est= self.tanh(out[:,7])
 
         return (prob_vector, value_est)
 

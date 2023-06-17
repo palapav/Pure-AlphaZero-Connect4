@@ -40,3 +40,15 @@ if temperature is very high -> policy very explorative
 * add regularization to loss function
 
 * casting to double in loss function -> see if there is a better way
+
+TESTING PARADIGM
+- need to test at the functional level
+- then piecing all the functions together to form a working program (mcts)
+- then need to test single game
+- then test entire train pipeline
+- as abstraction gets larger -> testing needs to scale at the same time
+- so we can better isolate problems and have better defined inputs and outputs
+
+* check views versus copies
+
+* does convert_arr need to be a static method?

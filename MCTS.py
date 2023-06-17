@@ -6,6 +6,7 @@ import copy
 import mcts_utils
 import torch
 import NeuralNetwork
+import sys
 # MCTS class will call implicit, default constructor that
 # resets search tree per game
 
@@ -159,8 +160,8 @@ class MCTS():
             # new_child_board[available_moves[i]] = opp_mark
 
             """insert p vector and value estimate for new child board (with child player move played) """
-            child_priors, value_est = alphazero_net.forward(torch.FloatTensor(new_child_board))
-            child_priors = child_priors.detach().numpy()
+            child_priors, value_est = alphazero_net.forward(MCTS.convert_arr(new_child_board))
+            child_priors = child_priors.detach().numpy()[0]
             value_est = value_est.item()
 
             # set unavailable moves child priors to zeroes
@@ -200,11 +201,18 @@ class MCTS():
 
             curr_node = curr_node.parent
 
+    # do we need to make this a static method?
+    @staticmethod
+    # reshapes given 42 input connect4 numpy board into 1 x 42 2D tensor
+    def convert_arr(root_game_board):
+        return torch.FloatTensor(root_game_board).reshape(1,-1)
 
     def search(self, alphazero_net, num_simulations, player_mark,
                root_game_board, training_dataset=None):
-        child_priors, value_est = alphazero_net.forward(torch.FloatTensor(root_game_board))
-        child_priors = child_priors.detach().numpy()
+        # returns 1 x 7 and 1 x 1
+        child_priors, value_est = alphazero_net.forward(MCTS.convert_arr(root_game_board))
+        # converting from 1x7 2D tensor to (7,) 1D arr
+        child_priors = child_priors.detach().numpy()[0]
         value_est = value_est.item()
 
         root_node = self.Node(root_game_board, player_mark, None, child_priors, value_est)
