@@ -20,16 +20,19 @@ class MCTS():
             self.player_mark = player_turn
             self.parent = parent
             self.is_terminal = is_terminal
+            # child node stores parent's action terminal score
             self.terminal_score = terminal_score
-            # represents action taken by current player on current board/node
-            # action is processed once mark of current player is placed on board
+            # represents action taken by current player on next board
+            # action is processed during jump and placed on child board
             self.action_taken = action_taken
             self.children = []
 
             self.child_priors = network_prob # p vector
+
+            # can remove
             self.z_value = value_est
 
-            self.wins = 0
+            self.total_z_score = 0
             self.visits = 0
             self.parent_node_visits = 0
 
@@ -47,10 +50,10 @@ class MCTS():
         root_pi_policy = children_visits / total_children_visits
 
         # root node children z scores
-        child_z_scores = np.array([child_node.z_value for child_node in root_children_nodes])
+        # child_z_scores = np.array([child_node.z_value for child_node in root_children_nodes])
 
         child_actions_taken = np.array([child_node.action_taken for child_node in root_children_nodes])
-        return root_pi_policy, child_actions_taken, child_z_scores
+        return root_pi_policy, child_actions_taken
     
     @staticmethod
     def set_illegal_moves(pi_policy_vector, actions):
@@ -86,7 +89,7 @@ class MCTS():
         for i in range(num_children):
             child_node = children_nodes[i]
             parent_node = child_node.parent
-            curr_node_wins = child_node.wins
+            curr_node_total_zscore = child_node.total_z_score
             curr_node_visits = child_node.visits
             curr_node_parent_visits = parent_node.visits
 
@@ -96,7 +99,7 @@ class MCTS():
 
 
             child_ucb_score = MCTS.calculate_ucb_score(
-                                            curr_node_wins, 
+                                            curr_node_total_zscore, 
                                             curr_node_visits,
                                             child_move_prob,
                                             curr_node_parent_visits
@@ -175,6 +178,8 @@ class MCTS():
             # refactor to avoid to smaller objects to avoid Node constructor too many parameters
             # Node class owned by MCTS object
             # print(f"My mcts reward:{reward}")
+            # necessary for backpropagating terminal states
+            if is_finished: value_est = reward
             new_child_node = self.Node(
                                 new_child_board, new_child_mark, leaf_node,
                                 child_priors, value_est, is_finished, reward, 
@@ -192,12 +197,13 @@ class MCTS():
             curr_node.visits = curr_node.visits + 1
 
             if curr_node.player_mark == leaf_node.player_mark:
+                # we need to backpropagate the terminal scores when available
                 # expectation 
-                curr_node.z_value = leaf_node.z_value
-                curr_node.wins += leaf_node.z_value
+                # curr_node.z_value = leaf_node.z_value
+                curr_node.total_z_score += leaf_node.z_value
             else:
-                curr_node.z_value = -1 * leaf_node.z_value
-                curr_node.wins += (-1 * leaf_node.z_value)
+                # curr_node.z_value = -1 * leaf_node.z_value
+                curr_node.total_z_score += (-1 * leaf_node.z_value)
 
             curr_node = curr_node.parent
 
@@ -228,15 +234,13 @@ class MCTS():
             self.expand(leaf_node, alphazero_net)
             self.backpropagate(leaf_node)
 
-        pi_policy_vector, chosen_actions, z_scores = MCTS.create_pi_policy(root_node.children)
+        pi_policy_vector, chosen_actions = MCTS.create_pi_policy(root_node.children)
+        exp_z_score = root_node.total_z_score / root_node.visits
 
-        if len(pi_policy_vector) != len(z_scores): raise ValueError("Incorrect root children z scores extraction")
-        optimal_z_score = z_scores[np.argmax(pi_policy_vector)]
-        # print(f"optimal z score:{optimal_z_score}")
-
+        # if we maintain a 7 element vector throughout -> don't have to do this -> sub None instead for illegals
         root_pi_policy = MCTS.set_illegal_moves(pi_policy_vector, chosen_actions)
 
-        training_dataset.append([root_game_board, root_pi_policy, optimal_z_score])
+        training_dataset.append([root_game_board, root_pi_policy, exp_z_score])
 
         return np.argmax(root_pi_policy)
     
@@ -247,11 +251,12 @@ def main():
     # player 1 move is root node children
     mcts_test_board = np.array([0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 2,
+                                0, 0, 1, 1, 0, 0, 2,
+                                0, 1, 1, 1, 0, 0, 2,
                                 1, 2, 1, 2, 1, 2, 1])
     
+    # incorrect for player 2 -> maybe unable to diff btw 1 and 2
     # next player turn -> 1, so we pass in player 2
     mcts = MCTS()
     root_player_mark = 2

@@ -41,6 +41,8 @@ if temperature is very high -> policy very explorative
 
 * casting to double in loss function -> see if there is a better way
 
+* need to remove reward/terminal score attribute
+
 TESTING PARADIGM
 - need to test at the functional level
 - then piecing all the functions together to form a working program (mcts)
