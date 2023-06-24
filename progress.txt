@@ -54,3 +54,7 @@ TESTING PARADIGM
 * check views versus copies
 
 * does convert_arr need to be a static method?
+
+# refactor Node class -> create smaller objects -> too many parameters
+
+* when refactoring root node to be owned by player who is about to make a move on the board -> current problem -> need to change expansion still

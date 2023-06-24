@@ -154,15 +154,12 @@ class MCTS():
             MCTS.add_dirichlet_noise(leaf_node)
             
         # creating new child nodes based on all available actions
-        new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
+        # new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
         for i in range(num_child_outcomes):
             new_child_board = copy.deepcopy(leaf_node_board)
-            # inserting opponent's mark onto new child board
-            # as new nodes own the next board positioning
-            mcts_utils.play_move(new_child_board, available_moves[i], new_child_mark)
-            # new_child_board[available_moves[i]] = opp_mark
 
-            """insert p vector and value estimate for new child board (with child player move played) """
+            mcts_utils.play_move(new_child_board, available_moves[i], leaf_node.player_mark)
+
             child_priors, value_est = alphazero_net.forward(MCTS.convert_arr(new_child_board))
             child_priors = child_priors.detach().numpy()[0]
             value_est = value_est.item()
@@ -174,12 +171,11 @@ class MCTS():
 
             # determines is_terminal attribute and terminal_score (reward)
             # before finally creating new children nodes
-            is_finished, reward = mcts_utils.score_game(new_child_board, available_moves[i], new_child_mark)
-            # refactor to avoid to smaller objects to avoid Node constructor too many parameters
-            # Node class owned by MCTS object
-            # print(f"My mcts reward:{reward}")
-            # necessary for backpropagating terminal states
+            is_finished, reward = mcts_utils.score_game(new_child_board, available_moves[i], leaf_node.player_mark)
+
             if is_finished: value_est = reward
+            # previous player move on board, owned by current player
+            new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
             new_child_node = self.Node(
                                 new_child_board, new_child_mark, leaf_node,
                                 child_priors, value_est, is_finished, reward, 
@@ -195,15 +191,12 @@ class MCTS():
         
         while curr_node != None:
             curr_node.visits = curr_node.visits + 1
-
-            if curr_node.player_mark == leaf_node.player_mark:
-                # we need to backpropagate the terminal scores when available
-                # expectation 
-                # curr_node.z_value = leaf_node.z_value
+            
+            # child board holds parent board move
+            if leaf_node.player_mark == curr_node.player_mark:
                 curr_node.total_z_score += leaf_node.z_value
             else:
-                # curr_node.z_value = -1 * leaf_node.z_value
-                curr_node.total_z_score += (-1 * leaf_node.z_value)
+                curr_node.total_z_score -= leaf_node.z_value
 
             curr_node = curr_node.parent
 
@@ -247,21 +240,20 @@ class MCTS():
 #--------- MCTS search sanity check --------------
 def main():
     alphazero_nn = NeuralNetwork.AlphaZeroNet()
-    # player 2 owns this board (played last move at col 2)
-    # player 1 move is root node children
+    # root node of an empty board is owned by player 1
+    # root node makes a move on possible child boards owned by player 2
+    # wins/visits owned at root node
     mcts_test_board = np.array([0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 2,
-                                0, 0, 1, 1, 0, 0, 2,
-                                0, 1, 1, 1, 0, 0, 2,
+                                0, 2, 0, 0, 0, 0, 2,
+                                2, 2, 0, 1, 1, 0, 2,
                                 1, 2, 1, 2, 1, 2, 1])
     
-    # incorrect for player 2 -> maybe unable to diff btw 1 and 2
-    # next player turn -> 1, so we pass in player 2
     mcts = MCTS()
-    root_player_mark = 2
+    root_player_mark = 1
     training_dataset = []
-    player_one_move = mcts.search(alphazero_nn, 500, root_player_mark, mcts_test_board, training_dataset)
+    player_one_move = mcts.search(alphazero_nn, 200, root_player_mark, mcts_test_board, training_dataset)
     # should be between columns 0 to 6
     print(f"Player one next best move untrained: {player_one_move}")
 
