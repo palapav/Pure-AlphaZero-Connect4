@@ -234,8 +234,12 @@ class MCTS():
         root_pi_policy = MCTS.set_illegal_moves(pi_policy_vector, chosen_actions)
 
         training_dataset.append([root_game_board, root_pi_policy, exp_z_score])
-
-        return np.argmax(root_pi_policy)
+        
+        print(np.arange(7))
+        print(root_pi_policy)
+        # default None -> single value returned, p= needed because skipping some parameters after 7
+        return np.random.choice(7, p=root_pi_policy)
+        # return np.argmax(root_pi_policy)
     
 #--------- MCTS search sanity check --------------
 def main():
