@@ -89,7 +89,8 @@ class Game():
         game_dataset = []
         is_finished = False
         score = None
-        root_player_mark = self.opponent_move(self.player_one_mark)
+        # root player -> player 1 on empty board
+        root_player_mark = self.opponent_move(self.player_two_mark)
         while not is_finished:
             # initial move for player 1
             next_best_move = MCTS().search(

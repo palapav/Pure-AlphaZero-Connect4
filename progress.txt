@@ -41,6 +41,8 @@ if temperature is very high -> policy very explorative
 
 * casting to double in loss function -> see if there is a better way
 
+* need to remove reward/terminal score attribute
+
 TESTING PARADIGM
 - need to test at the functional level
 - then piecing all the functions together to form a working program (mcts)
@@ -52,3 +54,7 @@ TESTING PARADIGM
 * check views versus copies
 
 * does convert_arr need to be a static method?
+
+# refactor Node class -> create smaller objects -> too many parameters
+
+* when refactoring root node to be owned by player who is about to make a move on the board -> current problem -> need to change expansion still
