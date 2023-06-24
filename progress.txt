@@ -16,19 +16,19 @@ and merged into main (currently doing this)
 * refactor root node -> to be owned by player one
     * wins are backpropagated to root node -> check with pure MCTS
 
-* refactor optimal z score in backpropagation and training data -> total z score / total visits
+* refactor optimal z score in backpropagation and training data -> total z score / total visits (done)
 
-# np.random.choice for root policy vector 
+# np.random.choice for root policy vector
 
 * stop illegal moves in eval mode
 
-* to test mcts using untrained neural network -> 3 in a row -> can we get to 4
+* to test mcts using untrained neural network -> 3 in a row -> can we get to 4 (done)
 
 # cross entropy -> zero sum property
 
 # check whether policy and chosen actions are lining up index wise
 
-* total z value / total visits
+* total z value / total visits (done)
 
 * temperature parameter -> take all probabiltiies and raise to one over temperature power
 if temperature is very high -> policy very explorative
@@ -41,7 +41,7 @@ if temperature is very high -> policy very explorative
 
 * casting to double in loss function -> see if there is a better way
 
-* need to remove reward/terminal score attribute
+* need to remove reward/terminal score attribute (done -> using is_finished)
 
 TESTING PARADIGM
 - need to test at the functional level
@@ -57,7 +57,8 @@ TESTING PARADIGM
 
 # refactor Node class -> create smaller objects -> too many parameters
 
-* when refactoring root node to be owned by player who is about to make a move on the board -> current problem -> need to change expansion still
+* when refactoring root node to be owned by player who is about to make a move on the board 
+-> current problem -> need to change expansion still in old way (done)
 
 * need to do a deep analysis of why backpropagation is working in the opposite direction than expected
   - is board ownership not valued as much as current representation of state (with played move)
