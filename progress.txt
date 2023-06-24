@@ -18,7 +18,7 @@ and merged into main (currently doing this)
 
 * refactor optimal z score in backpropagation and training data -> total z score / total visits (done)
 
-# np.random.choice for root policy vector
+# np.random.choice for root policy vector (done)
 
 * stop illegal moves in eval mode
 
