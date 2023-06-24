@@ -65,10 +65,12 @@ class Trainer():
                 loss.backward()
                 # print(f"Is grad none after calling backward:{list(self.net.parameters())[0].grad}")
 
-                b = list(self.net.parameters())[0].clone()
+                # b = list(self.net.parameters())[0].clone()
 
                 # call the optimizer, update model parameters
                 self.optim.step()
+                # print(list(self.net.parameters())[0])
+                b = list(self.net.parameters())[0].clone()
 
                 print(f"Did params update: {not torch.equal(a.data, b.data)}")
 
@@ -83,7 +85,7 @@ class Trainer():
 
 
 
-def train_alphazero(num_iters=10, num_episodes=5):
+def train_alphazero(num_iters=10, num_episodes=2):
     """
     10 iterations, 10 self play games per iteration, 500 MCTS simulations per turn in a self play game
     once self play game is done -> game dataset is created
@@ -137,13 +139,18 @@ def train_alphazero(num_iters=10, num_episodes=5):
 
         # print(f"model state:\n{net.state_dict()}")
 
-        old_net = set(old_net.state_dict())
+        old_net = list(old_net.parameters())[0].clone()
+        print(f"type of old_net: {type(old_net)}")
         # print(f"old net:\n{old_net}")
         # new = load_checkpoint(net, 0)
-        new_net = set(net.state_dict())
+        # set(updated_net.state_dict())
+        new_net = list(updated_net.parameters())[0].clone()
         # print(f"new net:\n{new_net}")
         # both are having the same parameters
-        if new_net == old_net: raise ValueError("parameters are not updating")
+        # if new_net == old_net: raise ValueError("parameters are not updating")
+        is_same = torch.eq(old_net, new_net)
+        print(is_same)
+        if is_same: raise ValueError("parameters are not updating")
 
         net = updated_net
         # save_checkpoint(net, i)

@@ -63,3 +63,5 @@ TESTING PARADIGM
 * need to do a deep analysis of why backpropagation is working in the opposite direction than expected
   - is board ownership not valued as much as current representation of state (with played move)
   - did fixing z score at root node help?
+
+# check if neural network from 324 is updating params per epoch
