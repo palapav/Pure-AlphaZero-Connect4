@@ -19,8 +19,6 @@ class Trainer():
             epoch_steps = 0
             # network is not actually updating after every epoch 
             for training_data in self.train_loader:
-                # all tensors (actual)
-                # print(f"Is grad none @ beginning:{list(self.net.parameters())[0].grad}")
                 board_states = training_data[0]
                 # print(f"Type for board states set:n{type(board_states)}")
                 # print(f"Type of board states single: {type(board_states[0])}")
@@ -59,7 +57,7 @@ class Trainer():
 
                 # print(f"Is grad none:{list(self.net.parameters())[0].grad}")
 
-                a = list(self.net.parameters())[0].clone()
+                # a = list(self.net.parameters())[0].clone()
 
                 # backpropagate to compute gradients of parameters
                 loss.backward()
@@ -70,9 +68,9 @@ class Trainer():
                 # call the optimizer, update model parameters
                 self.optim.step()
                 # print(list(self.net.parameters())[0])
-                b = list(self.net.parameters())[0].clone()
+                # b = list(self.net.parameters())[0].clone()
 
-                print(f"Did params update: {not torch.equal(a.data, b.data)}")
+                # print(f"Did params update: {not torch.equal(a.data, b.data)}")
 
                 epoch_loss += loss.item()
                 epoch_steps += 1
@@ -86,23 +84,6 @@ class Trainer():
 
 
 def train_alphazero(num_iters=10, num_episodes=2):
-    """
-    10 iterations, 10 self play games per iteration, 500 MCTS simulations per turn in a self play game
-    once self play game is done -> game dataset is created
-    game dataset -> PyTorch ready dataset; train neural network on this dataset
-    output updated alphazero neural network
-    save model in checkpoint
-    record loss in terminal and graphically
-    redo process
-
-    maybe we can train after every iteration -> 
-    """
-    """Everything being done on CPU -> not GPU """
-
-    """no pitting models? -> just continuous training after every game of self play for now"""
-    """training per iteration and not per game -> not enough data """
-
-    # playing around with the learning rate
     learning_rate = 0.1
     net = NeuralNetwork.AlphaZeroNet()
     # we are using the same optimizer every single time -> that's just using the initial parameters
@@ -115,6 +96,7 @@ def train_alphazero(num_iters=10, num_episodes=2):
         # all the training examples accumulated for one iteration of alphazero training
         # 10 episodes/self play games per iteration
         old_net = net
+        old_params = list(old_net.parameters())[1].clone()
         for e in range(num_episodes):
             single_game_dataset = Game().self_play(net)
             print(f"Game {e} finished for iteration {i}")
@@ -139,18 +121,19 @@ def train_alphazero(num_iters=10, num_episodes=2):
 
         # print(f"model state:\n{net.state_dict()}")
 
-        old_net = list(old_net.parameters())[0].clone()
-        print(f"type of old_net: {type(old_net)}")
+        # old_net = list(old_net.parameters())[1].clone()
+        # print(f"type of old_net: {type(old_net)}")
         # print(f"old net:\n{old_net}")
         # new = load_checkpoint(net, 0)
         # set(updated_net.state_dict())
-        new_net = list(updated_net.parameters())[0].clone()
+        # new_params = list(updated_net.parameters())[1].clone()
         # print(f"new net:\n{new_net}")
         # both are having the same parameters
         # if new_net == old_net: raise ValueError("parameters are not updating")
-        is_same = torch.eq(old_net, new_net)
-        print(is_same)
-        if is_same: raise ValueError("parameters are not updating")
+        # is_same = torch.eq(old_params, new_params)
+        # print(f"Params equal:\n{is_same}")
+        # sys.exit(1)
+        # if is_same: raise ValueError("parameters are not updating")
 
         net = updated_net
         # save_checkpoint(net, i)

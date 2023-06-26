@@ -238,7 +238,7 @@ class MCTS():
         # default None -> single value returned, p= needed because skipping some parameters after 7
         return np.random.choice(7, p=root_pi_policy)
         # return np.argmax(root_pi_policy)
-    
+
 #--------- MCTS search sanity check --------------
 def main():
     alphazero_nn = NeuralNetwork.AlphaZeroNet()
@@ -246,11 +246,11 @@ def main():
     # root node makes a move on possible child boards owned by player 2
     # wins/visits owned at root node
     mcts_test_board = np.array([0, 0, 0, 0, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, 2,
-                                0, 2, 0, 0, 0, 0, 2,
-                                2, 2, 0, 1, 1, 0, 2,
-                                1, 2, 1, 2, 1, 2, 1])
+                                0, 0, 1, 1, 0, 0, 0,
+                                0, 0, 1, 1, 2, 0, 1,
+                                0, 0, 2, 2, 1, 2, 2,
+                                0, 0, 1, 2, 1, 2, 2,
+                                0, 0, 1, 2, 1, 1, 2])
     
     mcts = MCTS()
     root_player_mark = 1
