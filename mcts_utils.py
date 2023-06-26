@@ -4,9 +4,11 @@ COLUMNS = 7
 ROWS = 6
 
 #---- methods to facilitate MCTS simulations-------
-# will have to refactor later into MCTS utils class most likely
-# reduce redundant design between game_utils and mcts_utils
-# make design decision of object oriented vs functional design
+"""
+will have to refactor later into MCTS utils class most likely
+reduce redundant design between game_utils and mcts_utils
+make design decision of object oriented vs functional design
+"""
 def opponent_player_mark(player_mark):
     if player_mark != 1 and player_mark != 2:
         raise ValueError("Received invalid mark on board")
