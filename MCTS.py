@@ -1,3 +1,4 @@
+from logging import root
 import numpy as np
 # in built -> math module
 # naming modules vs classes -> classes not registering
@@ -173,7 +174,10 @@ class MCTS():
             # before finally creating new children nodes
             is_finished, reward = mcts_utils.score_game(new_child_board, available_moves[i], leaf_node.player_mark)
 
-            if is_finished: value_est = reward
+            if is_finished:
+                value_est = -reward
+                # opposing player lost -> cannot make any moves
+                if value_est == -1: child_priors[:] = 0.00000000
             # previous player move on board, owned by current player
             new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
             new_child_node = self.Node(
@@ -186,18 +190,23 @@ class MCTS():
             leaf_node.children.append(new_child_node)
 
 
-    def backpropagate(self, leaf_node):
+    def backpropagate(self, leaf_node, root_node, terminal_state):
         curr_node = leaf_node
         
         while curr_node != None:
             curr_node.visits = curr_node.visits + 1
-            
-            # child board holds parent board move
-            if leaf_node.player_mark == curr_node.player_mark:
-                curr_node.total_z_score += leaf_node.z_value
+            if terminal_state:
+                if curr_node.player_mark == leaf_node.player_mark: curr_node.total_z_score += leaf_node.z_value
+                else: curr_node.total_z_score += (-1 * leaf_node.z_value)
             else:
-                curr_node.total_z_score -= leaf_node.z_value
+                if root_node.player_mark == curr_node.player_mark: curr_node.total_z_score += leaf_node.z_value
+                else: curr_node.total_z_score += (-1 * leaf_node.z_value)
 
+            # # child board holds parent board move
+            # if root_node.player_mark == curr_node.player_mark:
+            #     curr_node.total_z_score += leaf_node.z_value
+            # else:
+            #     curr_node.total_z_score -= leaf_node.z_value
             curr_node = curr_node.parent
 
     # do we need to make this a static method?
@@ -221,14 +230,16 @@ class MCTS():
             leaf_node = self.select(root_node)
 
             if leaf_node.is_terminal:
-                self.backpropagate(leaf_node)
+                self.backpropagate(leaf_node, root_node, True)
                 continue
 
             self.expand(leaf_node, alphazero_net)
-            self.backpropagate(leaf_node)
+            self.backpropagate(leaf_node, root_node, False)
 
         pi_policy_vector, chosen_actions = MCTS.create_pi_policy(root_node.children)
         exp_z_score = root_node.total_z_score / root_node.visits
+
+        print(f"Exp z score at board state: {exp_z_score}")
 
         # if we maintain a 7 element vector throughout -> don't have to do this -> sub None instead for illegals
         root_pi_policy = MCTS.set_illegal_moves(pi_policy_vector, chosen_actions)
@@ -236,6 +247,7 @@ class MCTS():
         training_dataset.append([root_game_board, root_pi_policy, exp_z_score])
 
         # default None -> single value returned, p= needed because skipping some parameters after 7
+        print(f"policy: {root_pi_policy}")
         return np.random.choice(7, p=root_pi_policy)
         # return np.argmax(root_pi_policy)
 
@@ -246,14 +258,14 @@ def main():
     # root node makes a move on possible child boards owned by player 2
     # wins/visits owned at root node
     mcts_test_board = np.array([0, 0, 0, 0, 0, 0, 0,
-                                0, 0, 1, 1, 0, 0, 0,
+                                0, 0, 1, 0, 0, 0, 0,
                                 0, 0, 1, 1, 2, 0, 1,
                                 0, 0, 2, 2, 1, 2, 2,
                                 0, 0, 1, 2, 1, 2, 2,
                                 0, 0, 1, 2, 1, 1, 2])
     
     mcts = MCTS()
-    root_player_mark = 1
+    root_player_mark = 2
     training_dataset = []
     player_one_move = mcts.search(alphazero_nn, 200, root_player_mark, mcts_test_board, training_dataset)
     # should be between columns 0 to 6
