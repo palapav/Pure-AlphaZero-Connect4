@@ -65,3 +65,15 @@ TESTING PARADIGM
   - did fixing z score at root node help?
 
 # check if neural network from 324 is updating params per epoch
+
+
+__________________________________________________________________
+
+Updated AlphaZero:
+
+Refactor is_win (remove bias to player mark)
+Refactor out for loop (num_outcomes only one)
+Fix backprop
+Fix selection (inversion for players 1 and 2)
+Fix terminal state recording
+Make everything in terms of player 1
