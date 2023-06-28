@@ -91,8 +91,11 @@ class MCTS():
         for i in range(num_children):
             child_node = children_nodes[i]
             parent_node = child_node.parent
+            # if player 1 / 2 -> adjust scoring
+
             curr_node_total_zscore = child_node.total_z_score
             curr_node_visits = child_node.visits
+            if child_node.player_mark == 2: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
             curr_node_parent_visits = parent_node.visits
 
             played_move = child_node.action_taken
@@ -157,6 +160,7 @@ class MCTS():
             
         # creating new child nodes based on all available actions
         # new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
+        # just one outcome
         for i in range(num_child_outcomes):
             new_child_board = copy.deepcopy(leaf_node_board)
 
@@ -173,18 +177,24 @@ class MCTS():
 
             # determines is_terminal attribute and terminal_score (reward)
             # before finally creating new children nodes
-            is_finished, reward = mcts_utils.score_game(new_child_board, available_moves[i], leaf_node.player_mark)
+            # is_finished, reward = mcts_utils.score_game(new_child_board, available_moves[i], leaf_node.player_mark)
+            reward = mcts_utils.is_win(new_child_board, available_moves[i])
 
-            if is_finished:
-                # removed neg value
-                value_est = reward
+            # terminal states
+            if reward is not None: value_est = reward
+
+            # don't need to pass in the player mark
+
+            # if is_finished:
+            #     # removed neg value
+            #     value_est = reward
                 # opposing player lost -> cannot make any moves
-                if value_est == 1: child_priors[:] = 0.00000000
+                # if value_est == 1: child_priors[:] = 0.00000000
             # previous player move on board, owned by current player
             new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
             new_child_node = self.Node(
                                 new_child_board, new_child_mark, leaf_node,
-                                child_priors, value_est, is_finished, reward, 
+                                child_priors, value_est, reward is not None, reward, 
                                 available_moves[i]
                                 )
             
@@ -195,21 +205,27 @@ class MCTS():
     def backpropagate(self, leaf_node):
         curr_node = leaf_node
         
+        leaf_node_z_score = leaf_node.z_value
         while curr_node != None:
             curr_node.visits = curr_node.visits + 1
-            # if terminal_state:
-            if curr_node.player_mark == leaf_node.player_mark: curr_node.total_z_score += leaf_node.z_value
-            else: curr_node.total_z_score += (-1 * leaf_node.z_value)
 
-            # else:
-            # if root_node.player_mark == curr_node.player_mark: curr_node.total_z_score += leaf_node.z_value
-            # else: curr_node.total_z_score += (-1 * leaf_node.z_value)
+            curr_node.total_z_score += leaf_node_z_score
 
-            # # child board holds parent board move
-            # if root_node.player_mark == curr_node.player_mark:
-            #     curr_node.total_z_score += leaf_node.z_value
-            # else:
-            #     curr_node.total_z_score -= leaf_node.z_value
+
+            # # if terminal_state:
+            # # player 1 just one
+            # if curr_node.player_mark != leaf_node.player_mark: curr_node.total_z_score += leaf_node.z_value
+            # else: curr_node.total_z_score += (1 - leaf_node.z_value)
+
+            # # else:
+            # # if root_node.player_mark == curr_node.player_mark: curr_node.total_z_score += leaf_node.z_value
+            # # else: curr_node.total_z_score += (-1 * leaf_node.z_value)
+
+            # # # child board holds parent board move
+            # # if root_node.player_mark == curr_node.player_mark:
+            # #     curr_node.total_z_score += leaf_node.z_value
+            # # else:
+            # #     curr_node.total_z_score -= leaf_node.z_value
             curr_node = curr_node.parent
 
     # do we need to make this a static method?
@@ -232,11 +248,9 @@ class MCTS():
             # selection
             leaf_node = self.select(root_node)
 
-            if leaf_node.is_terminal:
-                self.backpropagate(leaf_node)
-                continue
+            if not leaf_node.is_terminal:
+                self.expand(leaf_node, alphazero_net)
 
-            self.expand(leaf_node, alphazero_net)
             self.backpropagate(leaf_node)
 
         pi_policy_vector, chosen_actions = MCTS.create_pi_policy(root_node.children)

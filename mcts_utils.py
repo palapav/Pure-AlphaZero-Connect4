@@ -38,7 +38,7 @@ def play_move(board, column, player_mark):
     board[column + (row * COLUMNS)] = player_mark
 
 
-def is_win(board, column, player_mark):
+def is_win(board, column, player_mark=None):
     inarow = 3
     target_rows = [r for r in range(ROWS) if board[column + (r * COLUMNS)] == player_mark]
     if len(target_rows) == 0: return False
@@ -70,11 +70,17 @@ def is_tie(board):
     return not(any(mark == EMPTY for mark in board[0: COLUMNS + 1]))
     
 # we score the game prior to player_mark placing mark on board
-def score_game(board, column, player_mark):
+# get rid of player mark
+# return None if non terminal
+def score_game(board, column, player_mark=None):
+    # have is_win method -> return who won (-1 not terminal, 0 if draw, 1/2 if win)
     if is_win(board, column, player_mark):
         return (True, 1)
-    if is_tie(board):
+    # buggy -> fix
+    if is_win(board, column, opponent_player_mark(player_mark)):
         return (True, 0)
+    if is_tie(board):
+        return (True, 0.5)
     else:
         # opponent won -> current player -> -1 score in backprop
         # opponent has won or game not finished yet
