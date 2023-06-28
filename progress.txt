@@ -77,3 +77,6 @@ Fix backprop
 Fix selection (inversion for players 1 and 2)
 Fix terminal state recording
 Make everything in terms of player 1
+Convert Tanh to Sigmoid
+0 0.5 and 1 -> still need to backprop the 0
+there shouldn't be -1 anymore in backprop
