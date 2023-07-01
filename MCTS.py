@@ -1,30 +1,20 @@
 import numpy as np
-# in built -> math module
-# naming modules vs classes -> classes not registering
 import math
 import copy
 import mcts_utils
 import torch
 import NeuralNetwork
 import sys
-# MCTS class will call implicit, default constructor that
-# resets search tree per game
 
-""" need to refactor out -1 to 1 and change from 0 to 1 (every node z score is a fracion from 0 to 1)"""
-
-# we don't have a negative one score in implementation when scoring game -> but take into account when backpropping
-# outer class doesn't need OOP design
 class MCTS():
     class Node():
         def __init__(self, board, player_turn, parent, network_prob, value_est,
-                     is_terminal=False, terminal_score = None, action_taken=None):
+                     is_terminal=False, action_taken=None):
             self.board = copy.deepcopy(board)
             # already played on the board by player
             self.player_mark = player_turn
             self.parent = parent
             self.is_terminal = is_terminal
-            # child node stores parent's action terminal score
-            self.terminal_score = terminal_score
             # represents action taken by current player on next board
             # action is processed during jump and placed on child board
             self.action_taken = action_taken
@@ -186,8 +176,7 @@ class MCTS():
             new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
             new_child_node = self.Node(
                                 new_child_board, new_child_mark, leaf_node,
-                                child_priors, value_est, is_finished, reward, 
-                                available_moves[i]
+                                child_priors, value_est, is_finished, available_moves[i]
                                 )
             
             # appending all possible children outcomes to the best leaf node

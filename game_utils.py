@@ -2,7 +2,8 @@
 
 import numpy as np
 import NeuralNetwork
-from mcts import MCTS
+# fix naming later
+from MCTS import MCTS
 import mcts_utils
 
 CONNECT4_GRID = 42
