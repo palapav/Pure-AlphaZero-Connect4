@@ -37,16 +37,7 @@ def self_play(alphazero_net):
         game_over, reward = mcts_utils.score_game(game_board)
         root_player_mark = played_mark
 
-    # if reward == 0:
-    #     game_dataset[-1][-1] = 0
-    #     # previous player's board
-    #     game_dataset[-2][-1] = 0
-    # else:
-    #     # player 1/2 places winning move
-    #     game_dataset[-1][-1] = 1
-    #     # opposing player played move that resulted in winner's move on next turn
-    #     game_dataset[-2][-1] = -1
-
+    # check to see if we need to add terminal reward for previous board
     game_dataset[-1][-1] = reward
 
     return game_dataset
