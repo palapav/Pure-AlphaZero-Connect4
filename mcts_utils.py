@@ -1,4 +1,5 @@
 import numpy as np
+import NeuralNetwork
 from scipy.signal import convolve2d
 
 # assign to different module -> constants.py
@@ -49,14 +50,11 @@ def play_move(board, column, player_mark):
 def is_tie(board):
     return not(any(mark == EMPTY for mark in board[0: COLUMNS + 1]))
 
-# All in terms of player 1
-# 0, 0.5, 1 win for player 1
-# if it is not a win/tie/loss for player 1 -> game is still continuing
-# return None for reward if keep on going
 def check_win(board, player_mark):
     # to use in convolve2D for optimizing connect4 wins -> we should change it to convolve1D soon
     board_2d = np.reshape(board, (6, 7))
     for kernel in detection_kernels:
+        # check why no syntax highlighting for convolve2d
         if (convolve2d(board_2d == player_mark, kernel, mode="valid") == 4).any():
             return True
     return False
@@ -64,20 +62,35 @@ def check_win(board, player_mark):
 def score_game(board):
     # game is still ongoing
     reward = None
-    if check_win(board, 1): reward = 1
+    game_over = False
+    if check_win(board, 1): reward = 1; game_over = True
     # player 1 lost -> guarenteed player 2 win -> by player 2 making winning move
-    elif check_win(board, 2): reward = 0
-    elif is_tie(board): reward = 0.5
-    return reward
+    elif check_win(board, 2): reward = 0; game_over = True
+    elif is_tie(board): reward = 0.5; game_over = True
+    return (game_over, reward)
 
 def main():
-    mcts_utils_test_board = np.array([0, 0, 0, 0, 0, 0, 0,
-                                      0, 0, 0, 0, 0, 0, 0,
-                                      0, 0, 0, 0, 0, 0, 2,
-                                      0, 2, 0, 0, 0, 0, 2,
-                                      2, 2, 1, 1, 1, 1, 2,
+    mcts_utils_test_board = np.array([1, 1, 2, 1, 0, 0, 0,
+                                      1, 1, 2, 2, 0, 0, 0,
+                                      1, 1, 2, 2, 0, 0, 2,
+                                      2, 2, 1, 1, 0, 0, 2,
+                                      2, 2, 2, 1, 1, 1, 2,
                                       1, 2, 1, 2, 1, 2, 1])
-    game_reward = score_game(mcts_utils_test_board)
+    # tied board for player 1/2 -> output is 0.5
+    mcts_utils_test_board2 = np.array([1, 1, 2, 1, 2, 1, 1,
+                                       2, 1, 2, 1, 2, 2, 1,
+                                       1, 1, 2, 2, 2, 1, 2,
+                                       2, 2, 1, 1, 1, 2, 2,
+                                       2, 2, 1, 2, 1, 1, 2,
+                                       1, 2, 1, 2, 2, 2, 1])
+    # game is not finished yet
+    mcts_utils_test_board3 = np.array([0, 0, 0, 0, 0, 0, 0,
+                                       0, 0, 0, 0, 0, 0, 0,
+                                       0, 0, 0, 0, 0, 0, 0,
+                                       0, 0, 0, 0, 0, 0, 2,
+                                       0, 0, 0, 0, 0, 0, 2,
+                                       1, 2, 1, 2, 2, 2, 1])
+    game_reward = score_game(mcts_utils_test_board3)
     print(f"Game reward from test board:\n{game_reward}")
     
 
