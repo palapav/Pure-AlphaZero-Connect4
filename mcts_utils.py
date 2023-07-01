@@ -77,3 +77,8 @@ def score_game(board, column, player_mark):
         # opponent won -> current player -> -1 score in backprop
         # opponent has won or game not finished yet
         return (False, None)
+
+def main(): pass
+
+if __name__ == "__main__":
+    main()
