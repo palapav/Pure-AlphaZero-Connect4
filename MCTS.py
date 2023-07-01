@@ -10,7 +10,10 @@ import sys
 # MCTS class will call implicit, default constructor that
 # resets search tree per game
 
+""" need to refactor out -1 to 1 and change from 0 to 1 (every node z score is a fracion from 0 to 1)"""
+
 # we don't have a negative one score in implementation when scoring game -> but take into account when backpropping
+# outer class doesn't need OOP design
 class MCTS():
     class Node():
         def __init__(self, board, player_turn, parent, network_prob, value_est,
@@ -48,9 +51,6 @@ class MCTS():
         total_children_visits = np.sum(children_visits)
         # child node z value 
         root_pi_policy = children_visits / total_children_visits
-
-        # root node children z scores
-        # child_z_scores = np.array([child_node.z_value for child_node in root_children_nodes])
 
         child_actions_taken = np.array([child_node.action_taken for child_node in root_children_nodes])
         return root_pi_policy, child_actions_taken
@@ -93,12 +93,18 @@ class MCTS():
             everything needs to be in term of player 1"""
             curr_node_total_zscore = child_node.total_z_score
             curr_node_visits = child_node.visits
+
+            # invert total z score for P2 for true representation (only backpropagating P1 scores)
+            # total z score (never has to be stored for P2 -> we can always just invert in selection)
+            if child_node.player_mark == 2:
+                curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
+
+
             curr_node_parent_visits = parent_node.visits
 
             played_move = child_node.action_taken
             """look back at this again -> parent node """
             child_move_prob = parent_node.child_priors[played_move]
-
 
             child_ucb_score = MCTS.calculate_ucb_score(
                                             curr_node_total_zscore, 
@@ -194,11 +200,9 @@ class MCTS():
         while curr_node != None:
             curr_node.visits = curr_node.visits + 1
             
-            # child board holds parent board move
-            if leaf_node.player_mark == curr_node.player_mark:
-                curr_node.total_z_score += leaf_node.z_value
-            else:
-                curr_node.total_z_score -= leaf_node.z_value
+            # updating all current nodes with player 1 terminal scores / value estimates
+            # then in selection phase -> inverting for player 2
+            curr_node.total_z_score += leaf_node.z_value
 
             curr_node = curr_node.parent
 
@@ -219,14 +223,11 @@ class MCTS():
         root_node = self.Node(root_game_board, player_mark, None, child_priors, value_est)
 
         for i in range(num_simulations):
-            # selection
             leaf_node = self.select(root_node)
 
-            if leaf_node.is_terminal:
-                self.backpropagate(leaf_node)
-                continue
+            if not leaf_node.is_terminal:
+                self.expand(leaf_node, alphazero_net)
 
-            self.expand(leaf_node, alphazero_net)
             self.backpropagate(leaf_node)
 
         pi_policy_vector, chosen_actions = MCTS.create_pi_policy(root_node.children)
@@ -252,7 +253,7 @@ def main():
     mcts_test_board = np.array([0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 2,
-                                0, 2, 0, 0, 0, 0, 2,
+                                0, 0, 0, 0, 0, 0, 2,
                                 2, 2, 0, 1, 1, 0, 2,
                                 1, 2, 1, 2, 1, 2, 1])
     
