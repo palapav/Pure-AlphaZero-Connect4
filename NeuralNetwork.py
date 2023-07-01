@@ -12,7 +12,7 @@ class AlphaZeroNet(nn.Module):
         self.relu = nn.ReLU()
         # along rows dimension
         self.softmax = nn.Softmax(dim=0)
-        self.tanh = nn.Tanh()
+        self.sigmoid = nn.Sigmoid()
 
     # x is the 42 input observation board
     def forward(self, x):
@@ -23,7 +23,7 @@ class AlphaZeroNet(nn.Module):
         out = self.output(out)
 
         prob_vector = self.softmax(out[:,0:7])
-        value_est= self.tanh(out[:,7])
+        value_est= self.sigmoid(out[:,7])
 
         return (prob_vector, value_est)
 
