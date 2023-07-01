@@ -89,6 +89,8 @@ class MCTS():
         for i in range(num_children):
             child_node = children_nodes[i]
             parent_node = child_node.parent
+            """need to fix this to have inversions for player 2 
+            everything needs to be in term of player 1"""
             curr_node_total_zscore = child_node.total_z_score
             curr_node_visits = child_node.visits
             curr_node_parent_visits = parent_node.visits
@@ -171,7 +173,7 @@ class MCTS():
 
             # determines is_terminal attribute and terminal_score (reward)
             # before finally creating new children nodes
-            is_finished, reward = mcts_utils.score_game(new_child_board, available_moves[i], leaf_node.player_mark)
+            is_finished, reward = mcts_utils.score_game(new_child_board)
 
             if is_finished: value_est = reward
             # previous player move on board, owned by current player

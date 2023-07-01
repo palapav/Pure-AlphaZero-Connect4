@@ -14,14 +14,14 @@ ROWS = 6
 # per game -> we run 500 MCTS simulations per turn
 # each MCTS simulation will return a move placed on the Game board
 # train the model after every game of self play
-def self_play(self, alphazero_net):
+def self_play(alphazero_net):
     game_board = np.zeros(CONNECT4_GRID)
     game_dataset = []
     # need to rename variables
     game_over = False
     reward = None
     # root player -> player 1 on empty board
-    root_player_mark = mcts_utils.opponent_player_mark(self.player_two_mark)
+    root_player_mark = mcts_utils.opponent_player_mark(player_two_mark=2)
     while not game_over:
         # initial move for player 1
         next_best_move = MCTS().search(
