@@ -35,7 +35,10 @@ def play_move(board, column, player_mark):
     row = max([r for r in range(ROWS) if board[column + (r * COLUMNS)] == EMPTY])
     board[column + (row * COLUMNS)] = player_mark
 
-
+# All in terms of player 1
+# 0, 0.5, 1 win for player 1
+# if it is not a win/tie/loss for player 1 -> game is still continuing
+# return None for reward
 def is_win(board, column, player_mark):
     inarow = 3
     target_rows = [r for r in range(ROWS) if board[column + (r * COLUMNS)] == player_mark]
