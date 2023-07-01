@@ -20,6 +20,9 @@ EMPTY = 0
 COLUMNS = 7
 ROWS = 6
 
+# here in terminal states -> only have
+
+
 class Game():
     def __init__(self):
         # 42 represents Connect4 Game Board
