@@ -1,7 +1,19 @@
+import numpy as np
+import NeuralNetwork
+from scipy.signal import convolve2d
+
+# assign to different module -> constants.py
 CONNECT4_GRID = 42
 EMPTY = 0
 COLUMNS = 7
 ROWS = 6
+
+# for scoring optimized wins
+HORIZONTAL_KERNEL = np.array([[ 1, 1, 1, 1]])
+VERTICAL_KERNEL = np.transpose(HORIZONTAL_KERNEL)
+DIAG1_KERNEL = np.eye(4, dtype=np.uint8)
+DIAG2_KERNEL = np.fliplr(DIAG1_KERNEL)
+detection_kernels = [HORIZONTAL_KERNEL, VERTICAL_KERNEL, DIAG1_KERNEL, DIAG2_KERNEL]
 
 #---- methods to facilitate MCTS simulations-------
 # will have to refactor later into MCTS utils class most likely
@@ -35,50 +47,52 @@ def play_move(board, column, player_mark):
     row = max([r for r in range(ROWS) if board[column + (r * COLUMNS)] == EMPTY])
     board[column + (row * COLUMNS)] = player_mark
 
-
-def is_win(board, column, player_mark):
-    inarow = 3
-    target_rows = [r for r in range(ROWS) if board[column + (r * COLUMNS)] == player_mark]
-    if len(target_rows) == 0: return False
-    row =  min(target_rows)
-    
-    def count(offset_row, offset_column):
-        for i in range(1, inarow + 1):
-            r = row + offset_row * i
-            c = column + offset_column * i
-            if (
-                r < 0
-                or r >= ROWS
-                or c < 0
-                or c >= COLUMNS
-                or board[c + (r * COLUMNS)] != player_mark
-            ):
-                return i - 1
-        return inarow
-
-    return (
-        count(1, 0) >= inarow  # vertical.
-        or (count(0, 1) + count(0, -1)) >= inarow  # horizontal.
-        or (count(-1, -1) + count(1, 1)) >= inarow  # top left diagonal.
-        or (count(-1, 1) + count(1, -1)) >= inarow  # top right diagonal.
-    )
-
-
 def is_tie(board):
     return not(any(mark == EMPTY for mark in board[0: COLUMNS + 1]))
-    
-# we score the game prior to player_mark placing mark on board
-def score_game(board, column, player_mark):
-    if is_win(board, column, player_mark):
-        return (True, 1)
-    if is_tie(board):
-        return (True, 0)
-    else:
-        # opponent won -> current player -> -1 score in backprop
-        # opponent has won or game not finished yet
-        return (False, None)
 
-def main(): pass
+def check_win(board, player_mark):
+    # to use in convolve2D for optimizing connect4 wins -> we should change it to convolve1D soon
+    board_2d = np.reshape(board, (6, 7))
+    for kernel in detection_kernels:
+        # check why no syntax highlighting for convolve2d
+        if (convolve2d(board_2d == player_mark, kernel, mode="valid") == 4).any():
+            return True
+    return False
+
+def score_game(board):
+    # game is still ongoing
+    reward = None
+    game_over = False
+    if check_win(board, 1): reward = 1; game_over = True
+    # player 1 lost -> guarenteed player 2 win -> by player 2 making winning move
+    elif check_win(board, 2): reward = 0; game_over = True
+    elif is_tie(board): reward = 0.5; game_over = True
+    return (game_over, reward)
+
+def main():
+    mcts_utils_test_board = np.array([1, 1, 2, 1, 0, 0, 0,
+                                      1, 1, 2, 2, 0, 0, 0,
+                                      1, 1, 2, 2, 0, 0, 2,
+                                      2, 2, 1, 1, 0, 0, 2,
+                                      2, 2, 2, 1, 1, 1, 2,
+                                      1, 2, 1, 2, 1, 2, 1])
+    # tied board for player 1/2 -> output is 0.5
+    mcts_utils_test_board2 = np.array([1, 1, 2, 1, 2, 1, 1,
+                                       2, 1, 2, 1, 2, 2, 1,
+                                       1, 1, 2, 2, 2, 1, 2,
+                                       2, 2, 1, 1, 1, 2, 2,
+                                       2, 2, 1, 2, 1, 1, 2,
+                                       1, 2, 1, 2, 2, 2, 1])
+    # game is not finished yet
+    mcts_utils_test_board3 = np.array([0, 0, 0, 0, 0, 0, 0,
+                                       0, 0, 0, 0, 0, 0, 0,
+                                       0, 0, 0, 0, 0, 0, 0,
+                                       0, 0, 0, 0, 0, 0, 2,
+                                       0, 0, 0, 0, 0, 0, 2,
+                                       1, 2, 1, 2, 2, 2, 1])
+    game_reward = score_game(mcts_utils_test_board3)
+    print(f"Game reward from test board:\n{game_reward}")
+    
 
 if __name__ == "__main__":
     main()

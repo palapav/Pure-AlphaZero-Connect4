@@ -1,5 +1,5 @@
 import NeuralNetwork
-from game_utils import Game
+from game_utils import self_play
 from nn_utils import AlphaLoss, prepare_training_data, save_checkpoint, load_checkpoint
 import torch.optim as optim
 import torch
@@ -84,22 +84,7 @@ class Trainer():
 
 
 def train_alphazero(num_iters=10, num_episodes=5):
-    """
-    10 iterations, 10 self play games per iteration, 500 MCTS simulations per turn in a self play game
-    once self play game is done -> game dataset is created
-    game dataset -> PyTorch ready dataset; train neural network on this dataset
-    output updated alphazero neural network
-    save model in checkpoint
-    record loss in terminal and graphically
-    redo process
-
-    maybe we can train after every iteration -> 
-    """
-    """Everything being done on CPU -> not GPU """
-
-    """no pitting models? -> just continuous training after every game of self play for now"""
-    """training per iteration and not per game -> not enough data """
-
+    # save checkpoint!
     # playing around with the learning rate
     learning_rate = 0.1
     net = NeuralNetwork.AlphaZeroNet()
@@ -114,7 +99,7 @@ def train_alphazero(num_iters=10, num_episodes=5):
         # 10 episodes/self play games per iteration
         old_net = net
         for e in range(num_episodes):
-            single_game_dataset = Game().self_play(net)
+            single_game_dataset = self_play(net)
             print(f"Game {e} finished for iteration {i}")
             # check on append operation
             # fixed size replay buffer (make it 100000) (if it ever gets filled up -> drop older policy examples)
@@ -127,7 +112,8 @@ def train_alphazero(num_iters=10, num_episodes=5):
         # retraining model every time we get a new batch of training data
         trainer = Trainer(net=net, optim=opt, loss_function=loss_function, train_loader=train_loader)
         print(f"About to Train on Iteration {i}--")
-        # removed updated net
+        # this is where we are collecting the updated net with new parameters
+        # are we actually transferring over parameters?
         updated_net, losses = trainer.train(epochs=10)
 
         # print(f"Losses for epochs in iteration {i}: {losses}")
