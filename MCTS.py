@@ -232,7 +232,8 @@ class MCTS():
 
         # do inversion here at the root node
         exp_z_score = root_node.total_z_score / root_node.visits
-        print(f"root node total z score: {root_node.total_z_score}")
+        if root_node.player_mark == 2: exp_z_score = (1 - exp_z_score)
+        print(f"root node total z score: {exp_z_score}")
         print(f"visits: {root_node.visits}")
 
         # if we maintain a 7 element vector throughout -> don't have to do this -> sub None instead for illegals
@@ -260,9 +261,9 @@ def main():
                                 1, 2, 1, 2, 1, 2, 1])
     
     mcts = MCTS()
-    root_player_mark = 1
+    root_player_mark = 2
     training_dataset = []
-    player_one_move = mcts.search(alphazero_nn, 500, root_player_mark, mcts_test_board, training_dataset)
+    player_one_move = mcts.search(alphazero_nn, 200, root_player_mark, mcts_test_board, training_dataset)
     # should be between columns 0 to 6
     print(f"Player one next best move untrained: {player_one_move}")
 
