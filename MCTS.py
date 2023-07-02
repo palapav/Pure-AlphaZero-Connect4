@@ -233,19 +233,20 @@ class MCTS():
         # do inversion here at the root node
         exp_z_score = root_node.total_z_score / root_node.visits
         if root_node.player_mark == 2: exp_z_score = (1 - exp_z_score)
-        print(f"root node total z score: {exp_z_score}")
-        print(f"visits: {root_node.visits}")
+        # print(f"root node total z score: {exp_z_score}")
+        # print(f"visits: {root_node.visits}")
 
         # if we maintain a 7 element vector throughout -> don't have to do this -> sub None instead for illegals
         root_pi_policy = MCTS.set_illegal_moves(pi_policy_vector, chosen_actions)
 
         training_dataset.append([root_game_board, root_pi_policy, exp_z_score])
         
-        print(np.arange(7))
-        print(root_pi_policy)
+        # print(np.arange(7))
+        # print(root_pi_policy)
         # default None -> single value returned, p= needed because skipping some parameters after 7
-        return np.random.choice(7, p=root_pi_policy)
-        # return np.argmax(root_pi_policy)
+        # return np.random.choice(7, p=root_pi_policy)
+        # changing to argmax did improve training
+        return np.argmax(root_pi_policy)
     
 #--------- MCTS search sanity check --------------
 def main():

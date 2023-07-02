@@ -59,18 +59,18 @@ class Trainer():
 
                 # print(f"Is grad none:{list(self.net.parameters())[0].grad}")
 
-                a = list(self.net.parameters())[0].clone()
+                # a = list(self.net.parameters())[0].clone()
 
                 # backpropagate to compute gradients of parameters
                 loss.backward()
                 # print(f"Is grad none after calling backward:{list(self.net.parameters())[0].grad}")
 
-                b = list(self.net.parameters())[0].clone()
+                # b = list(self.net.parameters())[0].clone()
 
                 # call the optimizer, update model parameters
                 self.optim.step()
 
-                print(f"Did params update: {not torch.equal(a.data, b.data)}")
+                # print(f"Did params update: {not torch.equal(a.data, b.data)}")
 
                 epoch_loss += loss.item()
                 epoch_steps += 1
@@ -97,7 +97,6 @@ def train_alphazero(num_iters=10, num_episodes=5):
     for i in range(num_iters):
         # all the training examples accumulated for one iteration of alphazero training
         # 10 episodes/self play games per iteration
-        old_net = net
         for e in range(num_episodes):
             single_game_dataset = self_play(net)
             print(f"Game {e} finished for iteration {i}")
@@ -123,18 +122,16 @@ def train_alphazero(num_iters=10, num_episodes=5):
 
         # print(f"model state:\n{net.state_dict()}")
 
-        old_net = set(old_net.state_dict())
+        # old_net = set(old_net.state_dict())
         # print(f"old net:\n{old_net}")
         # new = load_checkpoint(net, 0)
-        new_net = set(net.state_dict())
+        # new_net = set(net.state_dict())
         # print(f"new net:\n{new_net}")
         # both are having the same parameters
-        if new_net == old_net: raise ValueError("parameters are not updating")
+        # if new_net == old_net: raise ValueError("parameters are not updating")
 
         net = updated_net
         # save_checkpoint(net, i)
-
-        net = updated_net
 
         print(f"Finished training for iteration {i}")
 

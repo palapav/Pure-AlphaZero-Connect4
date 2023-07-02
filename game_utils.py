@@ -22,24 +22,29 @@ def self_play(alphazero_net):
     game_over = False
     reward = None
     # root player -> player 1 on empty board
-    root_player_mark = mcts_utils.opponent_player_mark(player_two_mark=2)
+    root_player_mark = 1
     while not game_over:
         # initial move for player 1
         next_best_move = MCTS().search(
         # 500 -> # of MCTS simulations
-                                alphazero_net, 500,
+                                alphazero_net, 200,
                                 root_player_mark,
                                 game_board,
                                 game_dataset
                                 )
-        played_mark = mcts_utils.opponent_player_mark(root_player_mark)
-        mcts_utils.play_move(game_board, next_best_move, played_mark)
+
+        mcts_utils.play_move(game_board, next_best_move, root_player_mark)
         # print(f"board after move:\n{np.reshape(self.board, (6,7))}")
         game_over, reward = mcts_utils.score_game(game_board)
-        root_player_mark = played_mark
+        
+        root_player_mark = mcts_utils.opponent_player_mark(root_player_mark)
 
     # check to see if we need to add terminal reward for previous board
-    game_dataset[-1][-1] = reward
+    # will alphazero work for only including terminal states for player 1 and not player 2 in self play?
+    terminal_mark = mcts_utils.opponent_player_mark(root_player_mark)
+    if terminal_mark == 1: game_dataset[-1][-1] = reward
+    # this small change below improved training loss
+    else: game_dataset[-1][-1] = (1 - reward)
 
     return game_dataset
             
