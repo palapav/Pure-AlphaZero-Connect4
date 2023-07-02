@@ -2,6 +2,7 @@
 
 import numpy as np
 import NeuralNetwork
+# fix naming later
 from mcts import MCTS
 import mcts_utils
 
