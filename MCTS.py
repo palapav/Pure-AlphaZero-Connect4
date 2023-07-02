@@ -260,9 +260,9 @@ def main():
                                 1, 2, 1, 2, 1, 2, 1])
     
     mcts = MCTS()
-    root_player_mark = 2
+    root_player_mark = 1
     training_dataset = []
-    player_one_move = mcts.search(alphazero_nn, 200, root_player_mark, mcts_test_board, training_dataset)
+    player_one_move = mcts.search(alphazero_nn, 500, root_player_mark, mcts_test_board, training_dataset)
     # should be between columns 0 to 6
     print(f"Player one next best move untrained: {player_one_move}")
 
