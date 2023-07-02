@@ -8,7 +8,7 @@ import sys
 
 class MCTS():
     class Node():
-        def __init__(self, board, player_turn, parent, network_prob, value_est,
+        def __init__(self, board, player_turn, parent, child_priors, value_est,
                      is_terminal=False, action_taken=None):
             self.board = copy.deepcopy(board)
             # already played on the board by player
@@ -20,7 +20,7 @@ class MCTS():
             self.action_taken = action_taken
             self.children = []
 
-            self.child_priors = network_prob # p vector
+            self.child_priors = child_priors # p vector
 
             # can remove
             self.z_value = value_est
@@ -41,6 +41,10 @@ class MCTS():
         total_children_visits = np.sum(children_visits)
         # child node z value 
         root_pi_policy = children_visits / total_children_visits
+
+        # total_z_scores = np.array([child_node.total_z_score for child_node in root_children_nodes])
+        # exp_z_scores = total_z_scores / children_visits
+        # print(f"exp z scores: {exp_z_scores}")
 
         child_actions_taken = np.array([child_node.action_taken for child_node in root_children_nodes])
         return root_pi_policy, child_actions_taken
@@ -157,6 +161,7 @@ class MCTS():
             new_child_board = copy.deepcopy(leaf_node_board)
 
             mcts_utils.play_move(new_child_board, available_moves[i], leaf_node.player_mark)
+            print(new_child_board.reshape(6, 7))
 
             child_priors, value_est = alphazero_net.forward(MCTS.convert_arr(new_child_board))
             child_priors = child_priors.detach().numpy()[0]
@@ -170,6 +175,7 @@ class MCTS():
             # determines is_terminal attribute and terminal_score (reward)
             # before finally creating new children nodes
             is_finished, reward = mcts_utils.score_game(new_child_board)
+            print(reward)
 
             if is_finished: value_est = reward
             # previous player move on board, owned by current player
@@ -181,19 +187,23 @@ class MCTS():
             
             # appending all possible children outcomes to the best leaf node
             leaf_node.children.append(new_child_node)
+        sys.exit(1)
 
 
     def backpropagate(self, leaf_node):
+        # we're backpropagating from L not from C
         curr_node = leaf_node
         
         while curr_node != None:
             curr_node.visits = curr_node.visits + 1
             
-            # updating all current nodes with player 1 terminal scores / value estimates
+            # updating all current nodes with player 1 terminal scores / value estimates (everything always in terms of player 1)
             # then in selection phase -> inverting for player 2
             curr_node.total_z_score += leaf_node.z_value
+            print(f"z score: {curr_node.total_z_score}")
 
             curr_node = curr_node.parent
+        sys.exit(1)
 
     # do we need to make this a static method?
     @staticmethod
@@ -220,6 +230,8 @@ class MCTS():
             self.backpropagate(leaf_node)
 
         pi_policy_vector, chosen_actions = MCTS.create_pi_policy(root_node.children)
+
+        # do inversion here at the root node
         exp_z_score = root_node.total_z_score / root_node.visits
 
         # if we maintain a 7 element vector throughout -> don't have to do this -> sub None instead for illegals
@@ -247,7 +259,7 @@ def main():
                                 1, 2, 1, 2, 1, 2, 1])
     
     mcts = MCTS()
-    root_player_mark = 1
+    root_player_mark = 2
     training_dataset = []
     player_one_move = mcts.search(alphazero_nn, 200, root_player_mark, mcts_test_board, training_dataset)
     # should be between columns 0 to 6
