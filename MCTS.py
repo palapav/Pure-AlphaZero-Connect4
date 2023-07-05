@@ -8,6 +8,8 @@ import sys
 # refactor later -> inbuilt
 import random
 
+MAX_CHILDREN = 7
+
 class MCTS():
     class Node():
         def __init__(self, board, player_turn, parent, child_priors, value_est,
@@ -38,18 +40,18 @@ class MCTS():
         # need to test ordered children nodes
         if len(root_children_nodes) <= 0:
             raise ValueError("Root node must have at least one child node")
-
+        
         children_visits = np.array([child_node.visits for child_node in root_children_nodes])
         total_children_visits = np.sum(children_visits)
         # child node z value 
         root_pi_policy = children_visits / total_children_visits
 
-        # total_z_scores = np.array([child_node.total_z_score for child_node in root_children_nodes])
+        z_scores = np.array([child_node.total_z_score for child_node in root_children_nodes])
         # exp_z_scores = total_z_scores / children_visits
         # print(f"exp z scores: {exp_z_scores}")
 
         child_actions_taken = np.array([child_node.action_taken for child_node in root_children_nodes])
-        return root_pi_policy, child_actions_taken
+        return root_pi_policy, child_actions_taken, z_scores, children_visits
     
     @staticmethod
     def set_illegal_moves(pi_policy_vector, actions):
@@ -62,15 +64,15 @@ class MCTS():
         return root_pi_policy
 
     @staticmethod
-    def calculate_ucb_score(curr_node_wins, curr_node_visits, curr_node_prob, parent_node_visits):
+    def calculate_ucb_score(curr_node_z_score, curr_node_visits, curr_node_prob, parent_node_visits):
         # ucb score is never stored
         if curr_node_visits == 0: return float('+inf')
         # exploration parameter
         C = math.sqrt(2)
 
-        exploitation_term = curr_node_wins / curr_node_visits
+        exploitation_term = curr_node_z_score / curr_node_visits
         # now accounting for prior (Bayes rule)
-        exploration_term = C * curr_node_prob * math.sqrt(math.log(parent_node_visits) / curr_node_visits)
+        exploration_term = C * curr_node_prob * math.sqrt(math.log(parent_node_visits) / (1 + curr_node_visits))
         return exploitation_term + exploration_term
 
     # store ucb scores?
@@ -91,8 +93,8 @@ class MCTS():
 
             # invert total z score for P2 for true representation (only backpropagating P1 scores)
             # total z score (never has to be stored for P2 -> we can always just invert in selection)
-            if child_node.player_mark == 2: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
-
+            if parent_node.player_mark == 2: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
+            # if root_node_player_turn == 2: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
 
             curr_node_parent_visits = parent_node.visits
 
@@ -158,9 +160,10 @@ class MCTS():
         # new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
         for i in range(num_child_outcomes):
             new_child_board = copy.deepcopy(leaf_node_board)
-
-            new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
-            mcts_utils.play_move(new_child_board, available_moves[i], new_child_mark)
+            
+            # talk to Alex of why the wiki alignment is not working -> problem with selection?
+            # new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
+            mcts_utils.play_move(new_child_board, available_moves[i], leaf_node.player_mark)
 
             child_priors, value_est = alphazero_net.forward(MCTS.convert_arr(new_child_board))
             child_priors = child_priors.detach().numpy()[0]
@@ -176,7 +179,7 @@ class MCTS():
 
             if is_finished: value_est = reward
             # previous player move on board, owned by current player
-            # new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
+            new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
             new_child_node = self.Node(
                                 new_child_board, new_child_mark, leaf_node,
                                 child_priors, value_est, is_finished, available_moves[i]
@@ -216,6 +219,7 @@ class MCTS():
         child_priors = child_priors.detach().numpy()[0]
         value_est = value_est.item()
 
+        # player_mark = mcts_utils.opponent_player_mark(player_mark)
         root_node = self.Node(root_game_board, player_mark, None, child_priors, value_est)
 
         for i in range(num_simulations):
@@ -228,11 +232,15 @@ class MCTS():
 
             self.backpropagate(leaf_node)
 
-        pi_policy_vector, chosen_actions = MCTS.create_pi_policy(root_node.children)
+        pi_policy_vector, chosen_actions, z_scores, children_visits = MCTS.create_pi_policy(root_node.children)
 
         # do inversion here at the root node
         exp_z_score = root_node.total_z_score / root_node.visits
-        if root_node.player_mark == 2: exp_z_score = (1 - exp_z_score)
+        # print(f"root node total z score: {root_node.total_z_score}")
+        # print(f"root node visits: {root_node.visits}")
+        # print(f"children node visits:\n{children_visits}")
+        # print(f"children z scores:\n{z_scores}")
+        # if root_node.player_mark == 2: exp_z_score = (1 - exp_z_score)
         # print(f"root node total z score: {exp_z_score}")
         # print(f"visits: {root_node.visits}")
 
@@ -254,12 +262,12 @@ def main():
     # root node of an empty board is owned by player 1
     # root node makes a move on possible child boards owned by player 2
     # wins/visits owned at root node
-    mcts_test_board = np.array([0, 0, 0, 0, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, 2,
-                                0, 0, 0, 0, 0, 0, 2,
-                                2, 2, 0, 1, 1, 0, 2,
-                                1, 2, 1, 2, 1, 2, 1])
+    mcts_test_board =np.array([0, 0, 0, 0, 0, 0, 0,
+                               1, 1, 2, 1, 2, 2, 1,
+                               2, 2, 1, 1, 2, 2, 2,
+                               1, 1, 2, 2, 2, 1, 1,
+                               2, 2, 1, 1, 1, 2, 1,
+                               1, 1, 1, 2, 1, 2, 1])
     
     mcts = MCTS()
     root_player_mark = 2

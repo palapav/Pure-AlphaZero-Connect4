@@ -11,7 +11,8 @@ class AlphaZeroNet(nn.Module):
         self.output = nn.Linear(in_features=256, out_features=8)
         self.relu = nn.ReLU()
         # along rows dimension
-        self.softmax = nn.Softmax(dim=0)
+        # previous bug here!!
+        self.softmax = nn.Softmax(dim=1)
         self.sigmoid = nn.Sigmoid()
 
     # x is the 42 input observation board
