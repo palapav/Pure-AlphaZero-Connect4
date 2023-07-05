@@ -41,10 +41,10 @@ def self_play(alphazero_net):
 
     # check to see if we need to add terminal reward for previous board
     # will alphazero work for only including terminal states for player 1 and not player 2 in self play?
-    terminal_mark = mcts_utils.opponent_player_mark(root_player_mark)
-    if terminal_mark == 1: game_dataset[-1][-1] = reward
+    # terminal_mark = mcts_utils.opponent_player_mark(root_player_mark)
+    game_dataset[-1][-1] = reward
     # this small change below improved training loss
-    else: game_dataset[-1][-1] = (1 - reward)
+    # else: game_dataset[-1][-1] = (1 - reward)
 
     return game_dataset
             

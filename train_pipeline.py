@@ -79,7 +79,7 @@ class Trainer():
             losses.append(epoch_loss / epoch_steps)
             print("epoch [%d]: loss %.3f" % (epoch+1, losses[-1]))
 
-        return self.net, losses
+        return losses
 
 
 
@@ -88,6 +88,7 @@ def train_alphazero(num_iters=10, num_episodes=5):
     # playing around with the learning rate
     learning_rate = 0.1
     net = NeuralNetwork.AlphaZeroNet()
+    opt = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
     # we are using the same optimizer every single time -> that's just using the initial parameters
     loss_function = AlphaLoss()
     training_examples = []
@@ -107,13 +108,15 @@ def train_alphazero(num_iters=10, num_episodes=5):
         print(f"Number of training examples so far: {len(training_examples)}")
         print(f"Preparing Training Data for Iteration {i}")
         train_loader = prepare_training_data(training_examples)
-        opt = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
+        # opt = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
         # retraining model every time we get a new batch of training data
+
+        # change it in a way to just pass in / append new data but keep the Trainer obj in memory
         trainer = Trainer(net=net, optim=opt, loss_function=loss_function, train_loader=train_loader)
         print(f"About to Train on Iteration {i}--")
         # this is where we are collecting the updated net with new parameters
         # are we actually transferring over parameters?
-        updated_net, losses = trainer.train(epochs=10)
+        losses = trainer.train(epochs=10)
 
         # print(f"Losses for epochs in iteration {i}: {losses}")
         print(f"Avg loss for iteration {i}:{sum(losses) / len(losses)}")
@@ -130,7 +133,7 @@ def train_alphazero(num_iters=10, num_episodes=5):
         # both are having the same parameters
         # if new_net == old_net: raise ValueError("parameters are not updating")
 
-        net = updated_net
+        # net = updated_net
         # save_checkpoint(net, i)
 
         print(f"Finished training for iteration {i}")
