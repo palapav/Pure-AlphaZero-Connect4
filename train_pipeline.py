@@ -86,9 +86,10 @@ class Trainer():
 def train_alphazero(num_iters=10, num_episodes=5):
     # save checkpoint!
     # playing around with the learning rate
-    learning_rate = 0.1
+    learning_rate = 0.01
     net = NeuralNetwork.AlphaZeroNet()
-    opt = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
+    # opt = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
+    opt = optim.Adam(net.parameters(), lr=learning_rate)
     # we are using the same optimizer every single time -> that's just using the initial parameters
     loss_function = AlphaLoss()
     training_examples = []

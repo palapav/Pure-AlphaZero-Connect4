@@ -27,7 +27,7 @@ def self_play(alphazero_net):
         # initial move for player 1
         next_best_move = MCTS().search(
         # 500 -> # of MCTS simulations
-                                alphazero_net, 200,
+                                alphazero_net, 500,
                                 root_player_mark,
                                 game_board,
                                 game_dataset

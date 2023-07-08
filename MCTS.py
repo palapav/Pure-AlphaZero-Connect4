@@ -46,12 +46,12 @@ class MCTS():
         # child node z value 
         root_pi_policy = children_visits / total_children_visits
 
-        z_scores = np.array([child_node.total_z_score for child_node in root_children_nodes])
+        # z_scores = np.array([child_node.total_z_score for child_node in root_children_nodes])
         # exp_z_scores = total_z_scores / children_visits
         # print(f"exp z scores: {exp_z_scores}")
 
         child_actions_taken = np.array([child_node.action_taken for child_node in root_children_nodes])
-        return root_pi_policy, child_actions_taken, z_scores, children_visits
+        return root_pi_policy, child_actions_taken
     
     @staticmethod
     def set_illegal_moves(pi_policy_vector, actions):
@@ -98,6 +98,8 @@ class MCTS():
             MOVE FROM THE GIVEN STATE -> USE THIS PRINCIPLE TO GUIDE SELECTION """
 
             """REMEMBER WE ARE GUIDING SELECTION -> NOT JUST SIMPLY KEEPING TRACK OF WIN/LOSSES """
+
+            # play out selections -> check to see why other scenarios don't work -> commit MCTS to documentation
             if parent_node.player_mark == 2: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
             # if child_node.player_mark == 1: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
             # if root_node_player_turn == 2: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
@@ -238,7 +240,7 @@ class MCTS():
 
             self.backpropagate(leaf_node)
 
-        pi_policy_vector, chosen_actions, z_scores, children_visits = MCTS.create_pi_policy(root_node.children)
+        pi_policy_vector, chosen_actions = MCTS.create_pi_policy(root_node.children)
 
         # do inversion here at the root node
         exp_z_score = root_node.total_z_score / root_node.visits
@@ -256,7 +258,7 @@ class MCTS():
         training_dataset.append([root_game_board, root_pi_policy, exp_z_score])
         
         # print(np.arange(7))
-        print(root_pi_policy)
+        # print(root_pi_policy)
         # default None -> single value returned, p= needed because skipping some parameters after 7
         # return np.random.choice(7, p=root_pi_policy)
         # changing to argmax did improve training
