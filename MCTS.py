@@ -93,7 +93,13 @@ class MCTS():
 
             # invert total z score for P2 for true representation (only backpropagating P1 scores)
             # total z score (never has to be stored for P2 -> we can always just invert in selection)
+            
+            """IF PARENT NODE PLAYER MARK IS 2 -> WE NEED TO MAKE A JUMP ON A CHILD NODE THAT SELECTS THE BEST BLACK
+            MOVE FROM THE GIVEN STATE -> USE THIS PRINCIPLE TO GUIDE SELECTION """
+
+            """REMEMBER WE ARE GUIDING SELECTION -> NOT JUST SIMPLY KEEPING TRACK OF WIN/LOSSES """
             if parent_node.player_mark == 2: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
+            # if child_node.player_mark == 1: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
             # if root_node_player_turn == 2: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
 
             curr_node_parent_visits = parent_node.visits
@@ -250,7 +256,7 @@ class MCTS():
         training_dataset.append([root_game_board, root_pi_policy, exp_z_score])
         
         # print(np.arange(7))
-        # print(root_pi_policy)
+        print(root_pi_policy)
         # default None -> single value returned, p= needed because skipping some parameters after 7
         # return np.random.choice(7, p=root_pi_policy)
         # changing to argmax did improve training
@@ -270,7 +276,7 @@ def main():
                                1, 1, 1, 2, 1, 2, 1])
     
     mcts = MCTS()
-    root_player_mark = 2
+    root_player_mark = 1
     training_dataset = []
     player_one_move = mcts.search(alphazero_nn, 200, root_player_mark, mcts_test_board, training_dataset)
     # should be between columns 0 to 6
