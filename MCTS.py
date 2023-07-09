@@ -256,6 +256,9 @@ class MCTS():
         root_pi_policy = MCTS.set_illegal_moves(pi_policy_vector, chosen_actions)
 
         training_dataset.append([root_game_board, root_pi_policy, exp_z_score])
+        print(f"MCTS board state:\n{root_game_board.reshape(6, 7)}")
+        print(f"MCTS policy:\n{root_pi_policy}")
+        print(f"MCTS value est:{exp_z_score}")
         
         # print(np.arange(7))
         # print(root_pi_policy)

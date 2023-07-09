@@ -103,6 +103,16 @@ def train_alphazero(num_iters=10, num_episodes=5):
         for e in range(num_episodes):
             single_game_dataset = self_play(net)
             print(f"Game {e} finished for iteration {i}")
+            print(f"Single game dataset:\n{single_game_dataset}")
+
+            for train_ex in single_game_dataset:
+                board_state = train_ex[0]
+                print(f"board state:\n{board_state.reshape(6, 7)}")
+                print(f"policy:\n{train_ex[1]}")
+                print(f"value est:{train_ex[2]}")
+        
+            sys.exit(1)
+
             # check on append operation
             # fixed size replay buffer (make it 100000) (if it ever gets filled up -> drop older policy examples)
             training_examples += single_game_dataset
