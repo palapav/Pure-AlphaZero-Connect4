@@ -66,3 +66,6 @@ TESTING PARADIGM
 
 
 Inversion for player 2 can only be because it is a 2 player game right?
+
+
+need to select the best move for each player at the respective depth based on player who is about to play
