@@ -87,7 +87,7 @@ class Trainer():
 def train_alphazero(num_iters=10, num_episodes=5):
     # save checkpoint!
     # playing around with the learning rate
-    learning_rate = 0.001
+    learning_rate = 0.01
     net = NeuralNetwork.AlphaZeroNet()
     # opt = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
     opt = optim.Adam(net.parameters(), lr=learning_rate)
