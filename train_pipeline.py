@@ -22,6 +22,7 @@ class Trainer():
                 # all tensors (actual)
                 # print(f"Is grad none @ beginning:{list(self.net.parameters())[0].grad}")
                 board_states = training_data[0]
+                # print(f"board states:\n{board_states.reshape(6, 7)}")
                 # print(f"Type for board states set:n{type(board_states)}")
                 # print(f"Type of board states single: {type(board_states[0])}")
 
@@ -86,9 +87,10 @@ class Trainer():
 def train_alphazero(num_iters=10, num_episodes=5):
     # save checkpoint!
     # playing around with the learning rate
-    learning_rate = 0.1
+    learning_rate = 0.001
     net = NeuralNetwork.AlphaZeroNet()
-    opt = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
+    # opt = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
+    opt = optim.Adam(net.parameters(), lr=learning_rate)
     # we are using the same optimizer every single time -> that's just using the initial parameters
     loss_function = AlphaLoss()
     training_examples = []
@@ -101,6 +103,16 @@ def train_alphazero(num_iters=10, num_episodes=5):
         for e in range(num_episodes):
             single_game_dataset = self_play(net)
             print(f"Game {e} finished for iteration {i}")
+            # print(f"Single game dataset:\n{single_game_dataset}")
+
+            # for train_ex in single_game_dataset:
+            #     board_state = train_ex[0]
+                # print(f"board state:\n{board_state.reshape(6, 7)}")
+                # print(f"policy:\n{train_ex[1]}")
+                # print(f"value est:{train_ex[2]}")
+        
+            # sys.exit(1)
+
             # check on append operation
             # fixed size replay buffer (make it 100000) (if it ever gets filled up -> drop older policy examples)
             training_examples += single_game_dataset

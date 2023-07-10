@@ -1,28 +1,12 @@
-playing marks in one column -> we still have moves geared towards that column
-once filled -> need to check if this resolved (test)
-
 unit testing -> statement, boundary, path, stress
 
-Jun 15th update:
 Read AlphaZero paper -> all detailed
 
-* All changes going forward needs to be done in a branch
-and merged into main (currently doing this)
-
-* Changes to be made
-
-* Refactor NN so that training data and MCTS only take 2D tensors (done)
-
-* refactor root node -> to be owned by player one
-    * wins are backpropagated to root node -> check with pure MCTS
-
-* refactor optimal z score in backpropagation and training data -> total z score / total visits (done)
+* check on selection
 
 # np.random.choice for root policy vector (done)
 
 * stop illegal moves in eval mode
-
-* to test mcts using untrained neural network -> 3 in a row -> can we get to 4 (done)
 
 # cross entropy -> zero sum property
 
@@ -57,12 +41,27 @@ TESTING PARADIGM
 
 # refactor Node class -> create smaller objects -> too many parameters
 
-* when refactoring root node to be owned by player who is about to make a move on the board 
--> current problem -> need to change expansion still in old way (done)
+need to select the best move for each player at the respective depth based on player who is about to play
 
-* need to do a deep analysis of why backpropagation is working in the opposite direction than expected
-  - is board ownership not valued as much as current representation of state (with played move)
-  - did fixing z score at root node help?
+Why MCTS is more focused on building out current columns instead of exploring other columns
+
+Store player who is about to move and moved placed on board in game dataset
+but don't store in training data
+
+Fix game dataset to include all training examples instead of just one training example (memory address issue potentially)
+
+Do a detailed printing at all levels -> all levels of code should be tested
 
 
-Inversion for player 2 can only be because it is a 2 player game right?
+Do a detailed memory analysis at all levels
+
+MAJOR BUG FIX -> ROOT game board being passed down from game to MCTS level using same
+memory address -> we are never storing the previous boards
+
+We are thinking it's at the list level per element -> we need to do an introspection for the elements themselves
+when something looks convincing -> move onto other reasons surrounding the same problem
+don't keep on forcing on the same problem
+
+Be very careful when mutating memory addresses
+
+check root pi policy mem addresses

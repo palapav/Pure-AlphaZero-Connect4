@@ -46,12 +46,12 @@ class MCTS():
         # child node z value 
         root_pi_policy = children_visits / total_children_visits
 
-        z_scores = np.array([child_node.total_z_score for child_node in root_children_nodes])
+        # z_scores = np.array([child_node.total_z_score for child_node in root_children_nodes])
         # exp_z_scores = total_z_scores / children_visits
         # print(f"exp z scores: {exp_z_scores}")
 
         child_actions_taken = np.array([child_node.action_taken for child_node in root_children_nodes])
-        return root_pi_policy, child_actions_taken, z_scores, children_visits
+        return root_pi_policy, child_actions_taken
     
     @staticmethod
     def set_illegal_moves(pi_policy_vector, actions):
@@ -93,7 +93,15 @@ class MCTS():
 
             # invert total z score for P2 for true representation (only backpropagating P1 scores)
             # total z score (never has to be stored for P2 -> we can always just invert in selection)
+            
+            """IF PARENT NODE PLAYER MARK IS 2 -> WE NEED TO MAKE A JUMP ON A CHILD NODE THAT SELECTS THE BEST BLACK
+            MOVE FROM THE GIVEN STATE -> USE THIS PRINCIPLE TO GUIDE SELECTION """
+
+            """REMEMBER WE ARE GUIDING SELECTION -> NOT JUST SIMPLY KEEPING TRACK OF WIN/LOSSES """
+
+            # play out selections -> check to see why other scenarios don't work -> commit MCTS to documentation
             if parent_node.player_mark == 2: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
+            # if child_node.player_mark == 1: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
             # if root_node_player_turn == 2: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
 
             curr_node_parent_visits = parent_node.visits
@@ -212,7 +220,7 @@ class MCTS():
         return torch.FloatTensor(root_game_board).reshape(1,-1)
 
     def search(self, alphazero_net, num_simulations, player_mark,
-               root_game_board, training_dataset=None):
+               root_game_board, training_dataset):
         # returns 1 x 7 and 1 x 1
         child_priors, value_est = alphazero_net.forward(MCTS.convert_arr(root_game_board))
         # converting from 1x7 2D tensor to (7,) 1D arr
@@ -232,7 +240,7 @@ class MCTS():
 
             self.backpropagate(leaf_node)
 
-        pi_policy_vector, chosen_actions, z_scores, children_visits = MCTS.create_pi_policy(root_node.children)
+        pi_policy_vector, chosen_actions = MCTS.create_pi_policy(root_node.children)
 
         # do inversion here at the root node
         exp_z_score = root_node.total_z_score / root_node.visits
@@ -247,14 +255,21 @@ class MCTS():
         # if we maintain a 7 element vector throughout -> don't have to do this -> sub None instead for illegals
         root_pi_policy = MCTS.set_illegal_moves(pi_policy_vector, chosen_actions)
 
-        training_dataset.append([root_game_board, root_pi_policy, exp_z_score])
+        # print(f"training dataset id: {id(training_dataset)}")
+
+        curr_board_state = copy.deepcopy(root_game_board)
+        training_dataset.append([curr_board_state, root_pi_policy, exp_z_score])
+        # print(f"training dataset id after : {id(training_dataset)}")
+        # print(f"MCTS board state:\n{root_game_board.reshape(6, 7)}")
+        # print(f"MCTS policy:\n{root_pi_policy}")
+        # print(f"MCTS value est:{exp_z_score}")
         
         # print(np.arange(7))
         # print(root_pi_policy)
         # default None -> single value returned, p= needed because skipping some parameters after 7
-        # return np.random.choice(7, p=root_pi_policy)
+        return np.random.choice(7, p=root_pi_policy)
         # changing to argmax did improve training
-        return np.argmax(root_pi_policy)
+        # return np.argmax(root_pi_policy)
     
 #--------- MCTS search sanity check --------------
 def main():
@@ -270,7 +285,7 @@ def main():
                                1, 1, 1, 2, 1, 2, 1])
     
     mcts = MCTS()
-    root_player_mark = 2
+    root_player_mark = 1
     training_dataset = []
     player_one_move = mcts.search(alphazero_nn, 200, root_player_mark, mcts_test_board, training_dataset)
     # should be between columns 0 to 6
