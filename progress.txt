@@ -51,3 +51,17 @@ but don't store in training data
 Fix game dataset to include all training examples instead of just one training example (memory address issue potentially)
 
 Do a detailed printing at all levels -> all levels of code should be tested
+
+
+Do a detailed memory analysis at all levels
+
+MAJOR BUG FIX -> ROOT game board being passed down from game to MCTS level using same
+memory address -> we are never storing the previous boards
+
+We are thinking it's at the list level per element -> we need to do an introspection for the elements themselves
+when something looks convincing -> move onto other reasons surrounding the same problem
+don't keep on forcing on the same problem
+
+Be very careful when mutating memory addresses
+
+check root pi policy mem addresses

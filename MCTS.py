@@ -220,7 +220,7 @@ class MCTS():
         return torch.FloatTensor(root_game_board).reshape(1,-1)
 
     def search(self, alphazero_net, num_simulations, player_mark,
-               root_game_board, training_dataset=None):
+               root_game_board, training_dataset):
         # returns 1 x 7 and 1 x 1
         child_priors, value_est = alphazero_net.forward(MCTS.convert_arr(root_game_board))
         # converting from 1x7 2D tensor to (7,) 1D arr
@@ -255,17 +255,21 @@ class MCTS():
         # if we maintain a 7 element vector throughout -> don't have to do this -> sub None instead for illegals
         root_pi_policy = MCTS.set_illegal_moves(pi_policy_vector, chosen_actions)
 
-        training_dataset.append([root_game_board, root_pi_policy, exp_z_score])
-        print(f"MCTS board state:\n{root_game_board.reshape(6, 7)}")
-        print(f"MCTS policy:\n{root_pi_policy}")
-        print(f"MCTS value est:{exp_z_score}")
+        # print(f"training dataset id: {id(training_dataset)}")
+
+        curr_board_state = copy.deepcopy(root_game_board)
+        training_dataset.append([curr_board_state, root_pi_policy, exp_z_score])
+        # print(f"training dataset id after : {id(training_dataset)}")
+        # print(f"MCTS board state:\n{root_game_board.reshape(6, 7)}")
+        # print(f"MCTS policy:\n{root_pi_policy}")
+        # print(f"MCTS value est:{exp_z_score}")
         
         # print(np.arange(7))
         # print(root_pi_policy)
         # default None -> single value returned, p= needed because skipping some parameters after 7
-        # return np.random.choice(7, p=root_pi_policy)
+        return np.random.choice(7, p=root_pi_policy)
         # changing to argmax did improve training
-        return np.argmax(root_pi_policy)
+        # return np.argmax(root_pi_policy)
     
 #--------- MCTS search sanity check --------------
 def main():
