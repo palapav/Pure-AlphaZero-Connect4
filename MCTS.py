@@ -265,7 +265,7 @@ class MCTS():
         # print(f"MCTS value est:{exp_z_score}")
         
         # print(np.arange(7))
-        print(root_pi_policy)
+        # print(root_pi_policy)
         # default None -> single value returned, p= needed because skipping some parameters after 7
         return np.random.choice(7, p=root_pi_policy)
         # changing to argmax did improve training

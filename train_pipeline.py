@@ -89,9 +89,9 @@ def train_alphazero(num_iters=10, num_episodes=10):
     # playing around with the learning rate
     learning_rate = 0.1
     net = NeuralNetwork.AlphaZeroNet()
-    if has_checkpoint("a", 9): net = load_checkpoint(net, "a", 9)
+    # if has_checkpoint("a", 9): net = load_checkpoint(net, "a", 9)
     opt = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
-    # opt = optim.Adam(net.parameters(), lr=learning_rate)
+    # opt = optim.Adam(net.parameters(), lr=learning_rate, weight_decay=0.01)
     # we are using the same optimizer every single time -> that's just using the initial parameters
     loss_function = AlphaLoss()
     training_examples = []
@@ -108,9 +108,9 @@ def train_alphazero(num_iters=10, num_episodes=10):
 
             # for train_ex in single_game_dataset:
             #     board_state = train_ex[0]
-                # print(f"board state:\n{board_state.reshape(6, 7)}")
-                # print(f"policy:\n{train_ex[1]}")
-                # print(f"value est:{train_ex[2]}")
+            #     print(f"board state:\n{board_state.reshape(6, 7)}")
+            #     print(f"policy:\n{train_ex[1]}")
+            #     print(f"value est:{train_ex[2]}")
         
             # sys.exit(1)
 
@@ -147,7 +147,7 @@ def train_alphazero(num_iters=10, num_episodes=10):
         # if new_net == old_net: raise ValueError("parameters are not updating")
 
         # net = updated_net
-        save_checkpoint(net, "a", i)
+        # save_checkpoint(net, "a", i)
 
         print(f"Finished training for iteration {i}")
 
