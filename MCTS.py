@@ -162,7 +162,7 @@ class MCTS():
             raise ValueError("leaf node is full -> should not be here in expansion state")
         
         """dirichlet noise at root node here"""
-        # if leaf_node.parent is None: MCTS.add_dirichlet_noise(leaf_node)
+        if leaf_node.parent is None: MCTS.add_dirichlet_noise(leaf_node)
 
         # creating new child nodes based on all available actions
         # new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
@@ -265,7 +265,7 @@ class MCTS():
         # print(f"MCTS value est:{exp_z_score}")
         
         # print(np.arange(7))
-        # print(root_pi_policy)
+        print(root_pi_policy)
         # default None -> single value returned, p= needed because skipping some parameters after 7
         return np.random.choice(7, p=root_pi_policy)
         # changing to argmax did improve training
@@ -277,17 +277,24 @@ def main():
     # root node of an empty board is owned by player 1
     # root node makes a move on possible child boards owned by player 2
     # wins/visits owned at root node
-    mcts_test_board =np.array([0, 0, 0, 0, 0, 0, 0,
+    mcts_test_board = np.array([0, 0, 0, 0, 0, 0, 0,
                                1, 1, 2, 1, 2, 2, 1,
                                2, 2, 1, 1, 2, 2, 2,
                                1, 1, 2, 2, 2, 1, 1,
                                2, 2, 1, 1, 1, 2, 1,
                                1, 1, 1, 2, 1, 2, 1])
     
+    mcts_test_board2 = np.array([0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 1,
+                                 0, 0, 0, 1, 0, 0, 1,
+                                 0, 0, 0, 2, 0, 0, 2,
+                                 0, 0, 2, 2, 2, 1, 1,
+                                 1, 2, 2, 2, 1, 1, 1])
+    
     mcts = MCTS()
     root_player_mark = 1
     training_dataset = []
-    player_one_move = mcts.search(alphazero_nn, 200, root_player_mark, mcts_test_board, training_dataset)
+    player_one_move = mcts.search(alphazero_nn, 500, root_player_mark, mcts_test_board2, training_dataset)
     # should be between columns 0 to 6
     print(f"Player one next best move untrained: {player_one_move}")
 

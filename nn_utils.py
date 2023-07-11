@@ -62,10 +62,10 @@ def save_checkpoint(net, letter, iter_num):
     torch.save(net.state_dict(), checkpoint_path)
 
 def has_checkpoint(letter, iter_num):
-    return exists(f"checkpoints/{letter}/checkpoint-iter{letter}b{iter_num}")
+    return exists(f"checkpoints/{letter}/checkpoint-iter{letter}bc{iter_num}")
 
 def load_checkpoint(net, letter, iter_num):
-    checkpoint_path = f"checkpoints/{letter}/checkpoint-iter{letter}b{iter_num}"
+    checkpoint_path = f"checkpoints/{letter}/checkpoint-iter{letter}bc{iter_num}"
     net.load_state_dict(torch.load(checkpoint_path))
     return net
 
