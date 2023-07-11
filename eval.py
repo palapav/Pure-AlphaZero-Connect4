@@ -3,10 +3,14 @@ load most recent pretrained model of alphazero
 and pit it against Kaggle negamax agent and if have time -> against our own pure MCTS agent
 we will use Kaggle environments
 """
+from game_utils import CONNECT4_GRID
+from mcts_utils import score_game, play_move, opponent_player_mark, get_illegal_moves
 from nn_utils import load_checkpoint
 from kaggle_environments import evaluate, make
 import torch
 import NeuralNetwork
+import numpy as np
+from MCTS import MCTS
 
 # have self play -> interactions with one self in eval -> no computer generation
 
@@ -26,6 +30,54 @@ def alphazero_agent(observation, configuration):
     policy_estimate = alphazero_net.forward(board_state)
     print("prediction done")
     return torch.argmax(policy_estimate)
+
+def self_eval():
+    alphazero_net = NeuralNetwork.AlphaZeroNet()
+    alphazero_agent = load_checkpoint(alphazero_net, "a", 2)
+    
+    connect4_board = np.zeros(CONNECT4_GRID)
+    game_over = False
+
+    # initial player mark
+    curr_player_mark = 1
+
+    while not game_over:
+        """can be refactored"""
+        child_priors, value_est = alphazero_agent.forward(MCTS.convert_arr(connect4_board))
+        # converting from 1x7 2D tensor to (7,) 1D arr
+        child_priors = child_priors.detach().numpy()[0]
+        print(f"child priors: {child_priors}")
+
+        # mask illegal moves
+        illegal_moves = get_illegal_moves(connect4_board)
+        child_priors[illegal_moves] = 0.00000000
+
+        best_move = np.argmax(child_priors)
+
+        play_move(connect4_board, best_move, curr_player_mark)
+        print(f"Current Connect 4 board:\n{connect4_board.reshape(6, 7)}")
+
+        game_over, reward = score_game(connect4_board)
+
+        if game_over:
+            print(f"Game is over: Player {curr_player_mark} score: {reward}")
+            break
+
+        curr_player_mark = opponent_player_mark(curr_player_mark)
+
+        print("Play your move on above board:")
+        cli_move = int(input())
+
+        play_move(connect4_board, cli_move, curr_player_mark)
+
+        game_over, reward = score_game(connect4_board)
+
+        if game_over:
+            print(f"Game is over: Player {curr_player_mark} score: {1 - reward}")
+            break
+
+        curr_player_mark = opponent_player_mark(curr_player_mark)
+
 
 def eval_single_game():
     # 6 rows and 7 columns in standard connect 4
@@ -76,7 +128,8 @@ def evaluate_agent():
 def main():
     # 10 iterations
     #evaluate_agent()
-    eval_single_game()
+    # eval_single_game()
+    self_eval()
 
 if __name__ == '__main__':
     main()

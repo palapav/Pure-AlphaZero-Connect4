@@ -1,0 +1,206 @@
+Training Report for 10 iterations of 5 episodes each of self play on Connect 4
+Finished on Jul 10 at approx 2:10 am
+
+Game 0 finished for iteration 0
+Game 1 finished for iteration 0
+Game 2 finished for iteration 0
+Game 3 finished for iteration 0
+Game 4 finished for iteration 0
+Number of training examples so far: 123
+Preparing Training Data for Iteration 0
+About to Train on Iteration 0--
+epoch [1]: loss 1.979
+epoch [2]: loss 1.941
+epoch [3]: loss 1.918
+epoch [4]: loss 1.887
+epoch [5]: loss 1.861
+epoch [6]: loss 1.808
+epoch [7]: loss 1.796
+epoch [8]: loss 1.776
+epoch [9]: loss 1.759
+epoch [10]: loss 1.734
+Avg loss for iteration 0:1.8458317190527942
+Finished training for iteration 0
+Game 0 finished for iteration 1
+Game 1 finished for iteration 1
+Game 2 finished for iteration 1
+Game 3 finished for iteration 1
+Game 4 finished for iteration 1
+Number of training examples so far: 238
+Preparing Training Data for Iteration 1
+About to Train on Iteration 1--
+epoch [1]: loss 1.768
+epoch [2]: loss 1.785
+epoch [3]: loss 1.722
+epoch [4]: loss 1.689
+epoch [5]: loss 1.666
+epoch [6]: loss 1.628
+epoch [7]: loss 1.596
+epoch [8]: loss 1.592
+epoch [9]: loss 1.596
+epoch [10]: loss 1.573
+Avg loss for iteration 1:1.6613271082201824
+Finished training for iteration 1
+Game 0 finished for iteration 2
+Game 1 finished for iteration 2
+Game 2 finished for iteration 2
+Game 3 finished for iteration 2
+Game 4 finished for iteration 2
+Number of training examples so far: 377
+Preparing Training Data for Iteration 2
+About to Train on Iteration 2--
+epoch [1]: loss 1.662
+epoch [2]: loss 1.604
+epoch [3]: loss 1.598
+epoch [4]: loss 1.596
+epoch [5]: loss 1.579
+epoch [6]: loss 1.548
+epoch [7]: loss 1.516
+epoch [8]: loss 1.488
+epoch [9]: loss 1.501
+epoch [10]: loss 1.511
+Avg loss for iteration 2:1.5602738326550845
+Finished training for iteration 2
+Game 0 finished for iteration 3
+Game 1 finished for iteration 3
+Game 2 finished for iteration 3
+Game 3 finished for iteration 3
+Game 4 finished for iteration 3
+Number of training examples so far: 503
+Preparing Training Data for Iteration 3
+About to Train on Iteration 3--
+epoch [1]: loss 1.529
+epoch [2]: loss 1.521
+epoch [3]: loss 1.500
+epoch [4]: loss 1.485
+epoch [5]: loss 1.466
+epoch [6]: loss 1.479
+epoch [7]: loss 1.451
+epoch [8]: loss 1.447
+epoch [9]: loss 1.433
+epoch [10]: loss 1.418
+Avg loss for iteration 3:1.4729042149071707
+Finished training for iteration 3
+Game 0 finished for iteration 4
+Game 1 finished for iteration 4
+Game 2 finished for iteration 4
+Game 3 finished for iteration 4
+Game 4 finished for iteration 4
+Number of training examples so far: 589
+Preparing Training Data for Iteration 4
+About to Train on Iteration 4--
+epoch [1]: loss 1.448
+epoch [2]: loss 1.441
+epoch [3]: loss 1.428
+epoch [4]: loss 1.426
+epoch [5]: loss 1.407
+epoch [6]: loss 1.392
+epoch [7]: loss 1.385
+epoch [8]: loss 1.390
+epoch [9]: loss 1.363
+epoch [10]: loss 1.373
+Avg loss for iteration 4:1.4054651666108442
+Finished training for iteration 4
+Game 0 finished for iteration 5
+Game 1 finished for iteration 5
+Game 2 finished for iteration 5
+Game 3 finished for iteration 5
+Game 4 finished for iteration 5
+Number of training examples so far: 720
+Preparing Training Data for Iteration 5
+About to Train on Iteration 5--
+epoch [1]: loss 1.366
+epoch [2]: loss 1.355
+epoch [3]: loss 1.370
+epoch [4]: loss 1.374
+epoch [5]: loss 1.337
+epoch [6]: loss 1.326
+epoch [7]: loss 1.320
+epoch [8]: loss 1.293
+epoch [9]: loss 1.304
+epoch [10]: loss 1.312
+Avg loss for iteration 5:1.3356252338040249
+Finished training for iteration 5
+Game 0 finished for iteration 6
+Game 1 finished for iteration 6
+Game 2 finished for iteration 6
+Game 3 finished for iteration 6
+Game 4 finished for iteration 6
+Number of training examples so far: 791
+Preparing Training Data for Iteration 6
+About to Train on Iteration 6--
+epoch [1]: loss 1.302
+epoch [2]: loss 1.286
+epoch [3]: loss 1.274
+epoch [4]: loss 1.246
+epoch [5]: loss 1.258
+epoch [6]: loss 1.246
+epoch [7]: loss 1.259
+epoch [8]: loss 1.230
+epoch [9]: loss 1.218
+epoch [10]: loss 1.212
+Avg loss for iteration 6:1.2532079900665898
+Finished training for iteration 6
+Game 0 finished for iteration 7
+Game 1 finished for iteration 7
+Game 2 finished for iteration 7
+Game 3 finished for iteration 7
+Game 4 finished for iteration 7
+Number of training examples so far: 901
+Preparing Training Data for Iteration 7
+About to Train on Iteration 7--
+epoch [1]: loss 1.299
+epoch [2]: loss 1.283
+epoch [3]: loss 1.269
+epoch [4]: loss 1.238
+epoch [5]: loss 1.229
+epoch [6]: loss 1.248
+epoch [7]: loss 1.217
+epoch [8]: loss 1.237
+epoch [9]: loss 1.265
+epoch [10]: loss 1.239
+Avg loss for iteration 7:1.2524146054743683
+Finished training for iteration 7
+Game 0 finished for iteration 8
+Game 1 finished for iteration 8
+Game 2 finished for iteration 8
+Game 3 finished for iteration 8
+Game 4 finished for iteration 8
+Number of training examples so far: 1040
+Preparing Training Data for Iteration 8
+About to Train on Iteration 8--
+epoch [1]: loss 1.286
+epoch [2]: loss 1.247
+epoch [3]: loss 1.235
+epoch [4]: loss 1.228
+epoch [5]: loss 1.204
+epoch [6]: loss 1.213
+epoch [7]: loss 1.193
+epoch [8]: loss 1.195
+epoch [9]: loss 1.182
+epoch [10]: loss 1.172
+Avg loss for iteration 8:1.215472225075849
+Finished training for iteration 8
+Game 0 finished for iteration 9
+Game 1 finished for iteration 9
+Game 2 finished for iteration 9
+Game 3 finished for iteration 9
+Game 4 finished for iteration 9
+Number of training examples so far: 1150
+Preparing Training Data for Iteration 9
+About to Train on Iteration 9--
+epoch [1]: loss 1.204
+epoch [2]: loss 1.208
+epoch [3]: loss 1.195
+epoch [4]: loss 1.211
+epoch [5]: loss 1.183
+epoch [6]: loss 1.154
+epoch [7]: loss 1.164
+epoch [8]: loss 1.138
+epoch [9]: loss 1.144
+epoch [10]: loss 1.153
+Avg loss for iteration 9:1.1754678214850671
+Finished training for iteration 9
+
+
+pick up loading for AlphaZero2Train from above state
