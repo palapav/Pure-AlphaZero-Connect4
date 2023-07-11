@@ -65,3 +65,11 @@ don't keep on forcing on the same problem
 Be very careful when mutating memory addresses
 
 check root pi policy mem addresses
+
+need to add graph loss
+
+need to make train_alphazero function amenable to stopping and continuing training
+
+need to add dynamic piping losses to text files as status reports
+
+increase number of episodes per iteration?

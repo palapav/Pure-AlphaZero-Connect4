@@ -5,7 +5,9 @@ training of alphazero and also for graphing and generating loss data
 import numpy as np
 import torch
 import datetime
+import NeuralNetwork
 from torch.utils.data import Dataset, DataLoader
+from os.path import exists
 
 class AlphaLoss(torch.nn.Module):
     def __init__(self):
@@ -51,16 +53,19 @@ def prepare_training_data(games_dataset):
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, drop_last=True)
     return train_loader
 
-def save_checkpoint(net, iter_num):
+def save_checkpoint(net, letter, iter_num):
     # print(f"Type of net in save checkpoint: {type(net)}")
     # current_datetime = datetime.datetime.now()
     # current_datetime_str = current_datetime.strftime("%m-%d-%Y %I:%M:%S %p")
     # need to save to particular file
-    checkpoint_path = f"checkpoint-iterz{iter_num}"
+    checkpoint_path = f"checkpoints/{letter}/checkpoint-iter{letter}bc{iter_num}"
     torch.save(net.state_dict(), checkpoint_path)
 
-def load_checkpoint(net, iter_num):
-    checkpoint_path = f"checkpoint-iterz{iter_num}"
+def has_checkpoint(letter, iter_num):
+    return exists(f"checkpoints/{letter}/checkpoint-iter{letter}b{iter_num}")
+
+def load_checkpoint(net, letter, iter_num):
+    checkpoint_path = f"checkpoints/{letter}/checkpoint-iter{letter}b{iter_num}"
     net.load_state_dict(torch.load(checkpoint_path))
     return net
 
@@ -69,3 +74,11 @@ def delete_checkpoints():
 
 def graph_loss():
     pass
+
+def main():
+    net = NeuralNetwork.AlphaZeroNet()
+    net = load_checkpoint(net, "a", 9)
+    print(f"do we have checkpoint: {has_checkpoint('a', 9)}")
+    print(f"net parameters: {net.parameters()}")
+
+if __name__ == "__main__": main()
