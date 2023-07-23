@@ -22,6 +22,13 @@ class AlphaLoss(torch.nn.Module):
         # MSE for value
         mse_error = (value_est - z_value) ** 2
 
+        # get rid of transposes alltogether
+        # pi vector -> 32 x 7; p vector -> 32 x 7
+        # pi vector times p vector element wise -> 32 x 7
+        # sum along row dim, mean across the column dimension
+
+        # increasing batch size
+
         # cross entropy loss for policy
         p_vector_transpose = p_vector.t()
 
@@ -65,7 +72,7 @@ def has_checkpoint(letter, iter_num):
     return exists(f"checkpoints/{letter}/checkpoint-iter{letter}{iter_num}")
 
 def load_checkpoint(net, letter, iter_num):
-    checkpoint_path = f"checkpoints/{letter}/checkpoint-iter{letter}{iter_num}"
+    checkpoint_path = f"checkpoints/{letter}/checkpoint-iter{letter}bc{iter_num}"
     net.load_state_dict(torch.load(checkpoint_path))
     return net
 

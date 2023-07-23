@@ -91,6 +91,7 @@ def train_alphazero(num_iters=10, num_episodes=10):
     net = NeuralNetwork.AlphaZeroNet()
     # if has_checkpoint("a", 9): net = load_checkpoint(net, "a", 9)
     opt = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
+    # reducing weight decay
     # opt = optim.Adam(net.parameters(), lr=learning_rate, weight_decay=0.01)
     # we are using the same optimizer every single time -> that's just using the initial parameters
     loss_function = AlphaLoss()
