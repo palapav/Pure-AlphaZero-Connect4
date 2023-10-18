@@ -34,31 +34,14 @@ def self_play(alphazero_net):
                                 game_board,
                                 game_dataset
                                 )
-        
-        # print(f"game dataset id: {id(game_dataset)}")
-        # print(f"during:\n{game_dataset[0][0].reshape(6, 7)}")
 
         mcts_utils.play_move(game_board, next_best_move, root_player_mark)
-        # print(f"board after move:\n{np.reshape(self.board, (6,7))}")
         game_over, reward = mcts_utils.score_game(game_board)
         
         root_player_mark = mcts_utils.opponent_player_mark(root_player_mark)
 
 
-    # check to see if we need to add terminal reward for previous board
-    # will alphazero work for only including terminal states for player 1 and not player 2 in self play?
-    # terminal_mark = mcts_utils.opponent_player_mark(root_player_mark)
-    # print(f"game dataset after: {game_dataset}")
-    # for train_ex in game_dataset: 
-    #     print(f"after:\n{train_ex[0].reshape(6, 7)}")
-    #     print(f"policy:\n{train_ex[1]}")
-    #     print(f"value est:{train_ex[2]}")
     game_dataset[-1][-1] = reward
-    # this small change below improved training loss
-    # else: game_dataset[-1][-1] = (1 - reward)
-
-    # sys.exit(1)
-
     return game_dataset
             
 

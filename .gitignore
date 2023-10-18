@@ -2,6 +2,7 @@
 test.py
 checkpoint-iterq4
 checkpoint-iterz*
+progress.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

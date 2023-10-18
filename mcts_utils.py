@@ -16,9 +16,6 @@ DIAG2_KERNEL = np.fliplr(DIAG1_KERNEL)
 detection_kernels = [HORIZONTAL_KERNEL, VERTICAL_KERNEL, DIAG1_KERNEL, DIAG2_KERNEL]
 
 #---- methods to facilitate MCTS simulations-------
-# will have to refactor later into MCTS utils class most likely
-# reduce redundant design between game_utils and mcts_utils
-# make design decision of object oriented vs functional design
 def opponent_player_mark(player_mark):
     if player_mark != 1 and player_mark != 2:
         raise ValueError("Received invalid mark on board")
@@ -40,7 +37,6 @@ def get_illegal_moves(board):
     filled_cols = [move for move in range(COLUMNS) if board[move] != EMPTY]
     return filled_cols
     
-# terrible software design right now -> need to refactor tomorrow
 # playing the selected move on the game board for an episode per epoch
 # we train the network after each epoch
 def play_move(board, column, player_mark):

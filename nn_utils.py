@@ -13,22 +13,10 @@ class AlphaLoss(torch.nn.Module):
     def __init__(self):
         super(AlphaLoss, self).__init__()
 
-    # pi_vector and z_value given from training data
-    # value est and p vector given from raw NN
-    # inputs are all tensors
-
     # pass in example pi vector and p vector
     def forward(self, z_value, value_est, p_vector, pi_vector):
         # MSE for value
         mse_error = (value_est - z_value) ** 2
-
-        # get rid of transposes alltogether
-        # pi vector -> 32 x 7; p vector -> 32 x 7
-        # pi vector times p vector element wise -> 32 x 7
-        # sum along row dim, mean across the column dimension
-
-        # increasing batch size
-
         # cross entropy loss for policy
         p_vector_transpose = p_vector.t()
 
@@ -55,7 +43,7 @@ class CustomDataset(Dataset):
 
 
 def prepare_training_data(games_dataset):
-    """extremely slow -> consider converting list to single np array before converting to tensor"""
+    """consider converting list to single np array before converting to tensor"""
     train_dataset = CustomDataset(games_dataset)
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, drop_last=True)
     return train_loader

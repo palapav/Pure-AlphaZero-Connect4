@@ -4,8 +4,6 @@ import copy
 import mcts_utils
 import torch
 import NeuralNetwork
-import sys
-# refactor later -> inbuilt
 import random
 
 MAX_CHILDREN = 7
@@ -46,10 +44,6 @@ class MCTS():
         # child node z value 
         root_pi_policy = children_visits / total_children_visits
 
-        # z_scores = np.array([child_node.total_z_score for child_node in root_children_nodes])
-        # exp_z_scores = total_z_scores / children_visits
-        # print(f"exp z scores: {exp_z_scores}")
-
         child_actions_taken = np.array([child_node.action_taken for child_node in root_children_nodes])
         return root_pi_policy, child_actions_taken
     
@@ -78,7 +72,6 @@ class MCTS():
     # store ucb scores?
     @staticmethod
     def select_highest_UCB(children_nodes):
-        # no numpy here?
         if len(children_nodes) == 0:
             raise ValueError("Needs to have at least one child")
         children_ucb_scores = []
@@ -91,18 +84,7 @@ class MCTS():
             curr_node_total_zscore = child_node.total_z_score
             curr_node_visits = child_node.visits
 
-            # invert total z score for P2 for true representation (only backpropagating P1 scores)
-            # total z score (never has to be stored for P2 -> we can always just invert in selection)
-            
-            """IF PARENT NODE PLAYER MARK IS 2 -> WE NEED TO MAKE A JUMP ON A CHILD NODE THAT SELECTS THE BEST BLACK
-            MOVE FROM THE GIVEN STATE -> USE THIS PRINCIPLE TO GUIDE SELECTION """
-
-            """REMEMBER WE ARE GUIDING SELECTION -> NOT JUST SIMPLY KEEPING TRACK OF WIN/LOSSES """
-
-            # play out selections -> check to see why other scenarios don't work -> commit MCTS to documentation
             if parent_node.player_mark == 2: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
-            # if child_node.player_mark == 1: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
-            # if root_node_player_turn == 2: curr_node_total_zscore = curr_node_visits - curr_node_total_zscore
 
             curr_node_parent_visits = parent_node.visits
 
@@ -143,7 +125,6 @@ class MCTS():
 
         # dirichlet distribution
         epsilon = 0.25
-        # 96, 128, 192, 256
         valid_child_priors = (1 - epsilon) * np.array(valid_child_priors) + \
         epsilon * np.random.dirichlet(np.zeros([len(valid_child_priors)], dtype=np.float32) + 192)
 
@@ -168,8 +149,7 @@ class MCTS():
         # new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
         for i in range(num_child_outcomes):
             new_child_board = copy.deepcopy(leaf_node_board)
-            
-            # talk to Alex of why the wiki alignment is not working -> problem with selection?
+
             # new_child_mark = mcts_utils.opponent_player_mark(leaf_node.player_mark)
             mcts_utils.play_move(new_child_board, available_moves[i], leaf_node.player_mark)
 
@@ -244,38 +224,14 @@ class MCTS():
 
         # do inversion here at the root node
         exp_z_score = root_node.total_z_score / root_node.visits
-        # print(f"root node total z score: {root_node.total_z_score}")
-        # print(f"root node visits: {root_node.visits}")
-        # print(f"children node visits:\n{children_visits}")
-        # print(f"children z scores:\n{z_scores}")
-        # if root_node.player_mark == 2: exp_z_score = (1 - exp_z_score)
-        # print(f"root node total z score: {exp_z_score}")
-        # print(f"visits: {root_node.visits}")
 
         # if we maintain a 7 element vector throughout -> don't have to do this -> sub None instead for illegals
         root_pi_policy = MCTS.set_illegal_moves(pi_policy_vector, chosen_actions)
 
-        # print(f"training dataset id: {id(training_dataset)}")
-
         curr_board_state = copy.deepcopy(root_game_board)
         training_dataset.append([curr_board_state, root_pi_policy, exp_z_score])
-        # print(f"training dataset id after : {id(training_dataset)}")
-        # print(f"MCTS board state:\n{root_game_board.reshape(6, 7)}")
-        # print(f"MCTS policy:\n{root_pi_policy}")
-        # print(f"MCTS value est:{exp_z_score}")
-        
-        # print(np.arange(7))
         print(root_pi_policy)
-        # default None -> single value returned, p= needed because skipping some parameters after 7
         return np.random.choice(7, p=root_pi_policy)
-        # changing to argmax did improve training
-        # return np.argmax(root_pi_policy)
-
-    # ucb parameters are not explorative enough -> increase constant
-    # beginning of training -> higher exploration
-    # print out exploration vs exploitation
-    # beginning of training -> exploration term should take over
-    # try to set it to high
     
 #--------- MCTS search sanity check --------------
 def main():
