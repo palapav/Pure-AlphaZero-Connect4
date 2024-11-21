@@ -8,7 +8,7 @@ from mcts_utils import score_game, play_move, opponent_player_mark, get_illegal_
 from nn_utils import load_checkpoint
 from kaggle_environments import evaluate, make
 import torch
-import NeuralNetwork
+import nn
 import numpy as np
 from MCTS import MCTS
 
@@ -23,7 +23,7 @@ def alphazero_agent(observation, configuration):
     """
 
     # sampling legal vs illegal actions -> still need to do this
-    alphazero_net = NeuralNetwork.AlphaZeroNet()
+    alphazero_net = nn.AlphaZeroNet()
     # checkpoint number
     alphazero_net = load_checkpoint(alphazero_net, 4)
     board_state = torch.FloatTensor(observation.board)
@@ -32,7 +32,7 @@ def alphazero_agent(observation, configuration):
     return torch.argmax(policy_estimate)
 
 def self_eval():
-    alphazero_net = NeuralNetwork.AlphaZeroNet()
+    alphazero_net = nn.AlphaZeroNet()
     alphazero_agent = load_checkpoint(alphazero_net, "a", 2)
     
     connect4_board = np.zeros(CONNECT4_GRID)

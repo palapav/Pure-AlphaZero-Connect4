@@ -1,5 +1,5 @@
 import numpy as np
-import NeuralNetwork
+import nn
 from scipy.signal import convolve2d
 
 # assign to different module -> constants.py

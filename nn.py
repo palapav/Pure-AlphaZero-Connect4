@@ -10,8 +10,7 @@ class AlphaZeroNet(nn.Module):
         self.fc2 = nn.Linear(in_features=256, out_features=256)
         self.output = nn.Linear(in_features=256, out_features=8)
         self.relu = nn.ReLU()
-        # along rows dimension
-        # previous bug here!!
+        
         self.softmax = nn.Softmax(dim=1)
         self.sigmoid = nn.Sigmoid()
 
@@ -24,7 +23,7 @@ class AlphaZeroNet(nn.Module):
         out = self.output(out)
 
         prob_vector = self.softmax(out[:,0:7])
-        value_est= self.sigmoid(out[:,7])
+        value_est = self.sigmoid(out[:,7])
 
         return (prob_vector, value_est)
 

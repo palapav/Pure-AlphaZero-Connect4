@@ -3,7 +3,7 @@ import math
 import copy
 import mcts_utils
 import torch
-import NeuralNetwork
+import nn
 import random
 
 MAX_CHILDREN = 7
@@ -230,21 +230,21 @@ class MCTS():
 
         curr_board_state = copy.deepcopy(root_game_board)
         training_dataset.append([curr_board_state, root_pi_policy, exp_z_score])
-        print(root_pi_policy)
+        # print(root_pi_policy)
         return np.random.choice(7, p=root_pi_policy)
     
 #--------- MCTS search sanity check --------------
 def main():
-    alphazero_nn = NeuralNetwork.AlphaZeroNet()
+    alphazero_nn = nn.AlphaZeroNet()
     # root node of an empty board is owned by player 1
     # root node makes a move on possible child boards owned by player 2
     # wins/visits owned at root node
-    mcts_test_board = np.array([0, 0, 0, 0, 0, 0, 0,
-                               1, 1, 2, 1, 2, 2, 1,
-                               2, 2, 1, 1, 2, 2, 2,
-                               1, 1, 2, 2, 2, 1, 1,
-                               2, 2, 1, 1, 1, 2, 1,
-                               1, 1, 1, 2, 1, 2, 1])
+    mcts_test_board = np.array([0, 0, 0, 0, 2, 0, 0,
+                                1, 1, 2, 1, 2, 2, 1,
+                                2, 2, 1, 1, 2, 2, 2,
+                                1, 1, 2, 2, 2, 1, 1,
+                                2, 2, 1, 1, 1, 2, 1,
+                                1, 1, 1, 2, 1, 2, 1])
     
     mcts_test_board2 = np.array([0, 0, 0, 0, 0, 0, 0,
                                  0, 0, 0, 0, 0, 0, 1,
@@ -256,7 +256,7 @@ def main():
     mcts = MCTS()
     root_player_mark = 1
     training_dataset = []
-    player_one_move = mcts.search(alphazero_nn, 500, root_player_mark, mcts_test_board2, training_dataset)
+    player_one_move = mcts.search(alphazero_nn, 2000, root_player_mark, mcts_test_board, training_dataset)
     # should be between columns 0 to 6
     print(f"Player one next best move untrained: {player_one_move}")
 

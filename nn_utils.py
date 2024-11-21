@@ -5,7 +5,7 @@ training of alphazero and also for graphing and generating loss data
 import numpy as np
 import torch
 import datetime
-import NeuralNetwork
+import nn
 from torch.utils.data import Dataset, DataLoader
 from os.path import exists
 
@@ -71,7 +71,7 @@ def graph_loss():
     pass
 
 def main():
-    net = NeuralNetwork.AlphaZeroNet()
+    net = nn.AlphaZeroNet()
     net = load_checkpoint(net, "a", 9)
     print(f"do we have checkpoint: {has_checkpoint('a', 9)}")
     print(f"net parameters: {net.parameters()}")

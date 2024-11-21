@@ -1,7 +1,7 @@
 """game_utils.py -> to be used to only generate one game of self play"""
 
 import numpy as np
-import NeuralNetwork
+import nn
 # fix naming later
 from MCTS import MCTS
 import mcts_utils
@@ -47,7 +47,7 @@ def self_play(alphazero_net):
 
 # -------sanity check for self-play Game ---------
 def main():
-    alphazero_net = NeuralNetwork.AlphaZeroNet()
+    alphazero_net = nn.AlphaZeroNet()
     self_play_data = self_play(alphazero_net)
     # print(f"One game of self play training data:\n{self_play_data}")
 

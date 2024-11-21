@@ -1,4 +1,4 @@
-import NeuralNetwork
+import nn
 from game_utils import self_play
 from nn_utils import AlphaLoss, prepare_training_data, save_checkpoint, load_checkpoint, has_checkpoint
 import torch.optim as optim
@@ -50,7 +50,7 @@ def train_alphazero(num_iters=10, num_episodes=10):
     # save checkpoint!
     # playing around with the learning rate
     learning_rate = 0.1
-    net = NeuralNetwork.AlphaZeroNet()
+    net = nn.AlphaZeroNet()
     # if has_checkpoint("a", 9): net = load_checkpoint(net, "a", 9)
     opt = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
     # opt = optim.Adam(net.parameters(), lr=learning_rate, weight_decay=0.01)
